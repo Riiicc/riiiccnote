@@ -4,6 +4,7 @@
 [javakeeper](https://javakeeper.starfish.ink/java/)  
 [深入浅出多线程](http://concurrent.redspider.group/article/02/6.html)   
 [JVM](https://doocs.gitee.io/jvm/)    
+[CS自学指南](https://csdiy.wiki/)    
 
 # 日常
 
@@ -13,6 +14,7 @@
 - [计划](/日常/计划.md)
 - [JavaGuide总结](/日常/JavaGuide总结.md)
 - [尚硅谷面试](/日常/尚硅谷面试题.md)
+- [工具网站](/日常/工具网站.md)
 
 # Java
 
