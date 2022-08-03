@@ -2338,16 +2338,204 @@ SET autocommit = 0;
 设置隔离级别
 
 ```sql
-SET [GLOBAL|SESSION] TRANSACTION ISOLATION LEVEL 隔离级别;
+SET [GLOBAL|SESSION] TRANSACTION ISOLATION LEVEL 隔离级别; 
+#或者(注意隔离级别格式的不同)
 SET [GLOBAL|SESSION] TRANSACTION_ISOLATION = '隔离级别'
 # GLOBAL 全局
 # SESSION 当前会话
 #其中，隔离级别格式：
-> READ UNCOMMITTED
-> READ COMMITTED
-> REPEATABLE READ
+> READ UNCOMMITTED/READ-UNCOMMITTED
+> READ COMMITTED/READ-COMMITTED
+> REPEATABLE READ/REPATABLE-READ
 > SERIALIZABLE
 ```
+
+### 事务日志
+
+事务的4种特性: `原子性`,`一致性`,`隔离性`和`持久性`,其中`隔离性`由**锁机制**实现,而剩余的三种特性由事务的`redo日志`和`undo日志`来保证  
+
+- `REDO LOG`重做日志,提供再写入操作,恢复提交事务修改的页操作,保证`持久性`
+  - 记录物理操作，页号，偏移量信息
+- `UNDO LOG`回滚日志,回滚行记录到某个特性版本,保证`原子性` `一致性`
+  - 记录逻辑操作,执行Insert会生成一条Delete日志(记录每个修改操作的`逆操作`)
+
+
+#### REDO LOG
+InnoDB采用的机制是：先写日志(redo log),再写磁盘,只有日志写入成功,才算事务提交成功   
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redolog.png)  
+
+- redo日志降低了刷盘频率
+- redo日志占用的空间非常小
+- redo日志是顺序写入磁盘的
+- 事务执行过程中redo log不断记录
+
+
+
+#### REDO LOG 的组成 
+- `重做日志的缓冲 (redo log buffer)` ，保存在内存中，是易失的
+  - `redo log buffer` 默认大小为`16MB`,通过命令`show variables like '%innodb_log_bufer_size%'`进行查看
+- `重做日志文件 (redo log file)` ，保存在硬盘中，是持久的
+  - 默认存储在数据目录中,分别为两个`ib_logfile0` `ib_logfile1` 默认已经占用空间,所以看到的文件比较大
+
+#### REDO LOG 流转过程
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redo流转.png)
+
+刷盘策略:`redo log `不是直接写入磁盘的,`Innodb引擎会先写入redo log buffer` 之后再以一定的频率刷入到真正的`redo log file`中   
+InnoDB给出 `innodb_flush_log_at_trx_commit` 参数，该参数控制 commit提交事务时，如何将 `redo log buffer` 中的日志刷新到` redo log f`ile 中
+
+- 设置为`0`：表示每次事务提交时不进行刷盘操作。每隔1s写入pagecache
+- 设置为`1`：表示每次事务提交时都将进行同步，**刷盘**操作(默认值) 保证写入(持久化)
+- 设置为`2`：表示每次事务提交时都只把 redo log buffer 内容写入page cache`文件系统缓存`，不进行同步。由os自己决定什么时候同步到磁盘文件,效率高
+
+> 区别: `0` 完全固定刷新频率1s1次可能丢失1s数据,`1`每次事务提交都会进行同步刷盘,保证事务执行完肯定持久化,`2`是0和1的中间态,只保证写入系统缓存,持久化操作由系统调配
+
+#### REDO LOG Buffer过程
+
+`Mini-Transaction` 简称 `mtr`一个语句包含一组 `mtr`,一个`mtr`包含若干条redo日志
+
+#### Redo Log File相关参数
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redolog参数.png)
+
+
+#### Undo 日志 
+
+`redo log`是**事务持久性**的保证,`undo log`是**事务原子性**的保证,在事务中 `更新数据`的前置操作是写入一个`undo log`     
+`undo log`操作也会产生 `redo log` 
+
+#### Undo 日志的作用
+- `回滚数据`,用户将数据库逻辑恢复为原来的样子,理解为数据恢复,但是底层数据结构或者数据页发生了变化
+- `MVCC 多版本并发控制`, 在InnoDB引擎中MVCC的实现是通过undo来完成  
+
+#### 后续待完善
+
+p172
+
+#### Redo 和 Undo log加持总结
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redolog和undolog流程.png)
+
+
+### 锁
+
+事务的`隔离性`由锁来实现   
+`锁`是计算机协调多个进程或者线程`并发访问某一资源`的机制,`锁`为实现MySQL的各个隔离级别提供了保证  
+
+并发事务访问情况：
+- 读-读,并发读无影响
+- 写-写,容易发生脏写,脏写不允许发生
+- 读-写,可能发生脏读,不可重复读,幻读   
+
+并发问题的解决方案:
+- 读操作利用多版本并发控制`MVCC`,写操作进行加锁
+- 读、写操作都采用加锁的方式
+
+
+### 操作类型-读(共享)锁/写(排他)锁 
+InnoDB实现了两种标准的行级锁   
+
+- `读锁`默认为`共享锁`,也可以添加X锁成为排他锁 `S Lock` 兼容 S锁,不兼容X锁
+- `写锁`即`排他锁` `X Lock` 不兼容 S锁和 X锁
+
+```sql
+# S锁
+SELECT ... FROM ... LOCK IN SHARE MODE;
+
+#8.0之后新增的S锁的写法
+SELECT ... FROM ... FOR SHARE;
+
+# X锁
+SELECT ... FROM ... FOR UPDATE;
+```
+
+> 5.7及之前若使用X锁,获取不到锁就会一直进行等待,直到`innodb_lock_wait_timeout`超时   
+> 8.0后可以在SQL中添加后缀 `NOWAIT` `SKIP LOCKED`跳过锁等待或被锁定行   
+> `NOWAIT`会立即报错返回   
+> `SKIP LOCKED` 会立即返回未被锁定的行   
+
+### 操作粒度- 表锁,页锁,行锁  
+
+#### 表锁
+表锁一般使用在`MyISAM`引擎中
+- 表共享锁`Table Read Lock` S锁
+- 表独占锁`Table Write Lock` X锁
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MyISAM读写锁.png)
+
+##### 意向锁
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/意向锁.png)
+
+
+> 意向锁要解决的问题: 若我们给某一行数据加上了排他锁,数据库会自动给更大一级的空间,如数据页或者数据表加上意向锁,告诉其他人这个数据页或数据表已经有人上过排他锁了,这样当有人想要获取数据表排他锁的时候,只需了解是否已经有人获取了这个数据表的意向排他锁即可    
+
+- 意向锁是为了协调行锁和表锁的关系,支持多粒度(表锁和行锁)共存
+- 意向锁是一种 不与行锁冲突的表锁
+- 表明某个事务正在某些行有锁或者该事务准备去持有锁  
+
+> 个人理解,`意向锁` 表明该表有行锁存在,省去判断行锁  
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/意向锁对比.png)
+
+
+##### 自增锁 AUTO-INC锁
+表锁
+
+
+##### 元数据锁 MDL锁
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/意向锁对比.png)
+
+
+
+#### 行锁
+
+- 记录锁`Record Lock`
+  - 一个事务获取了一条记录的S记录锁后，其他事务也可以获取S锁，但是不能获取X锁
+  - 一个事务获取了一条记录的X锁后，其他事务不能获取S锁和X锁
+
+
+- 间隙锁`Gap Lock`  
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/间隙锁.png)
+
+gap锁的提出仅仅是为了防止插入幻影记录而提出的
+
+- 临键锁 
+  - 记录锁+间隙锁`(3,8]`  
+
+```sql
+begin;
+select * from student where id <=8 and id > 3 for update;
+```
+
+- 插入意向锁 
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/插入意向锁.png)
+
+
+#### 页锁
+
+> `页锁`就是在页的粒度上进行锁定，锁定的数据资源比行锁要多，因为一个页中可以有多个行记录。页锁的开销介于`表锁`和`行锁`之间，会出现`死锁`。锁定粒度介于`表锁`和`行锁`之间，并发度一般
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
