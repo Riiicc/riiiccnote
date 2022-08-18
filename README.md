@@ -5,6 +5,7 @@
 [深入浅出多线程](http://concurrent.redspider.group/article/02/6.html)   
 [JVM](https://doocs.gitee.io/jvm/)    
 [CS自学指南](https://csdiy.wiki/)    
+[值得一看的技术类书籍列表](https://doocs.github.io/technical-books/#/)    
 
 # 日常
 
