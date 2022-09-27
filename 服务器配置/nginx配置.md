@@ -1,3 +1,6 @@
+# Nginx 
+
+
 ## nginx 安装
 
 ### 1.下载
@@ -31,3 +34,5 @@ make && make install
 # windows 杀进程
 taskkill /f /t /im nginx.exe
 ```
+
+## 配置项

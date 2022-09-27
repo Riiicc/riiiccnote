@@ -892,12 +892,25 @@ public void testPageHelper() throws IOException {
 - navigatepageNums：导航分页的页码，\[1,2,3,4,5]
 
 
+## 注意事项
 
+### MyBatis 的 OGNL 表达式 与字段的冲突  
 
+冲突可能导致报错 `org.apache.ibatis.builder.BuilderException：Encounter`  
 
-
-
-
+bor     字符`|`的英文           
+xor      字符`^`的英文       
+and      字符`&& `    
+band    字符`&`      
+eq     字符`==`      
+neq    字符`!=`     
+lt      字符`<`    
+gt      字符`>`    
+lte       字符`<=`   
+gte    字符`>=`    
+shl    字符 `<<`    
+shr    字符`>>`     
+ushr    字符`>>>`
 
 
 
