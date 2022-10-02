@@ -6,7 +6,7 @@
 </div>
 
 ## 待办
-- `P120` 关于B+树的全方位理解由来,二叉树,平衡二叉树..
+- ~~`P120` 关于B+树的全方位理解由来,二叉树,平衡二叉树~~..
 - 联合索引`account,name,age`存在的情况下,是否有必要单独创建`account`索引
 - `hash join`
 - `FileSort算法`: 双路排序和单路排序
@@ -138,7 +138,7 @@ SELECT last_name FROM employees WHERE last_name LIKE '_$_a%' ESCAPE '$'
 
 ## 多表查询
 
-- 等值连接,非等值连接
+### 等值连接,非等值连接
 
 ```sql
 # 等值连接
@@ -148,7 +148,7 @@ SELECT employees.last_name, departments.department_name,employees.department_id 
 SELECT e.last_name,e.salary,j.grade_level FROM employees e,job_grades j WHERE e.salary BETWEEN j.lowest_sal AND j.highest_sal;
 ```
 
-- 自连接,非自连接
+### 自连接,非自连接
 
 ```sql
 # 自连接
@@ -157,16 +157,18 @@ WHERE emp.manager_id = mgr.employee_id
 
 ```
 
-- 内连接(两表根据条件的交集),
-- 外连接(并集)
-  - 左外`LEFT OUTER JOIN` `LEFT JOIN`
-  - 右外`RIGHT OUTER JOIN` `RIGHT JOIN`
-  - 全外**MySQL不支持FULL JOIN，但是可以用 LEFT JOIN UNION RIGHT JOIN 代替**
+### 内连接(两表根据条件的交集)
 
-- 使用(+)创建连接,
-  - `SQL92` 中采用`(+)`代表`从表`所在的位置。即左或右外连接中，`(+)` 表示哪个是从表
 
-```sql
+### 外连接(并集)
+- 左外`LEFT OUTER JOIN` `LEFT JOIN`
+- 右外`RIGHT OUTER JOIN` `RIGHT JOIN`
+- 全外**MySQL不支持FULL JOIN，但是可以用 LEFT JOIN UNION RIGHT JOIN 代替**
+
+### 使用(+)创建连接,
+- `SQL92` 中采用`(+)`代表`从表`所在的位置。即左或右外连接中，`(+)` 表示哪个是从表
+
+```sql 
 # 全外连接,或者使用 上面的LEFT JOIN UNION RIGHT JOIN
 select * from emp,dept where epm.deptno(+) = dept.dpetno(+)
 
@@ -178,8 +180,11 @@ select * from emp,dept where epm.deptno(+) = dept.dpetno
 
 ```
 
+### 7种SQL JOIN 实现
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/sql-join.png)
 
+
+### SQL99新特性
 
 - `SQL99` 自然连接 `NATURAL JOIN`
 - `SQL99` USING 指定数据表里的**同名字段**进行等值连接。但是只能配合JOIN一起使用
@@ -325,12 +330,12 @@ SELECT TIME_TO_SEC('2021-10-21 23:32:12');
 | DATE_SUB(date,INTERVAL expr type)，SUBDATE(date,INTERVAL expr type) | 返回与date相差INTERVAL时间间隔的日期           |
 
 ```sql
-SELECT DATE_ADD(NOW(), INTERVAL 1 DAY) AS col1, # 加一天
-DATE_ADD('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col2,# 加一秒
-ADDDATE('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col3, # 加一秒
-DATE_ADD('2021-10-21 23:32:12',INTERVAL '1_1' MINUTE_SECOND) AS col4,  # 加一分钟一秒 2021-10-21 23:33:13
-DATE_ADD(NOW(), INTERVAL -1 YEAR) AS col5, #可以是负数 减去一年
-DATE_ADD(NOW(), INTERVAL '1_1' YEAR_MONTH) AS col6 #需要单引号 加一年一月
+SELECT DATE_ADD(NOW(), INTERVAL 1 DAY) AS col1, -- 加一天
+DATE_ADD('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col2,-- 加一秒
+ADDDATE('2021-10-21 23:32:12',INTERVAL 1 SECOND) AS col3, -- 加一秒
+DATE_ADD('2021-10-21 23:32:12',INTERVAL '1_1' MINUTE_SECOND) AS col4,  -- 加一分钟一秒 2021-10-21 23:33:13
+DATE_ADD(NOW(), INTERVAL -1 YEAR) AS col5, -- 可以是负数 减去一年
+DATE_ADD(NOW(), INTERVAL '1_1' YEAR_MONTH) AS col6 -- 需要单引号 加一年一月
 FROM DUAL;
 ```
 
@@ -383,7 +388,7 @@ FROM DUAL;
 ```sql
 SELECT DATE_FORMAT(NOW(), '%H:%i:%s'); # 22:57:34
 
-# 格式化日期参考
+--- 格式化日期参考
 SELECT STR_TO_DATE('09/01/2009','%m/%d/%Y')
 FROM DUAL;
 
@@ -394,7 +399,7 @@ SELECT GET_FORMAT(DATE, 'USA'); # %m.%d.%Y
 
 SELECT DATE_FORMAT(NOW(),GET_FORMAT(DATE,'USA')) FROM DUAL; # 09.27.2022
 
-#字符串解析为日期 可以自己拼接格式
+--字符串解析为日期 可以自己拼接格式
 SELECT STR_TO_DATE('2020-01-01 00:00:00','%Y-%m-%d');
 
 ```
@@ -474,19 +479,19 @@ MySQL中有些函数无法对其进行具体的分类，但是这些函数在MyS
 > 即：**select 中的直接列都应该在group by中存在**   
 
 ```sql
-#需求：查询各个department_id,job_id的平均工资
+--需求：查询各个department_id,job_id的平均工资
 SELECT department_id,job_id,AVG(salary)
 FROM employees
 GROUP BY  department_id,job_id;
 
-#错误的 department_id,job_id 必须放在group by中
+--错误的 department_id,job_id 必须放在group by中
 SELECT department_id,job_id,AVG(salary)
 FROM employees
 GROUP BY department_id;
 ```
 
 > `GROUP BY` 中使用 `WITH ROLLUP` 汇总列,应用对应函数,`AVG` 会生成 所有列的平均值,`SUM` 生成所有列之和...
-> 当使用ROLLUP时，不能同时使用ORDER BY子句进行结果排序，即ROLLUP和ORDER BY是互相排斥的
+> 当使用ROLLUP时，不能同时使用ORDER BY子句进行结果排序，即ROLLUP和ORDER BY是互相排斥的 `实测MySQL8可以`
 
 - `HAVING` 过滤数据,结合`GROUP BY`
   - 行为已经被分组
@@ -494,19 +499,19 @@ GROUP BY department_id;
   - 最好和GROUP BY一起使用,并声明在GROUP BY 的后面
 
 ```sql
-# 错误示例 查找工资大于10000 的部门 会报错
+-- 错误示例 查找工资大于10000 的部门 会报错
 SELECT department_id,MAX(salary)
 FROM employees
 WHERE MAX(salary )> 10000
 GROUP BY department_id
 
-# 修改版
+-- 修改版
 SELECT department_id,MAX(salary)
 FROM employees
 GROUP BY department_id
 HAVING MAX(salary )> 10000
 
-# 附带条件 ,可以使用WHERE
+-- 附带条件 ,可以使用WHERE
 SELECT department_id,MAX(salary)
 FROM employees
 GROUP BY department_id
@@ -521,18 +526,47 @@ HAVING MAX(salary )> 10000 and department_id in (10,20,30,40)
 > SELECT 语句的执行顺序 `FROM -> WHERE -> GROUP BY -> HAVING -> SELECT 的字段 -> DISTINCT -> ORDER BY -> LIMIT`   
 
 ## 子查询
-> 子查询要包含在括号内
-> 将子查询放在比较条件的右侧
-> 单行操作符对应单行子查询,多行操作符对应多行子查询,子查询查询返回多行`IN` `ANY` `ALL` `SOME`  
+> 子查询要包含在括号内   
+> 将子查询放在比较条件的右侧   
+> 单行操作符对应单行子查询,      
+> 多行操作符对应多行子查询,返回多行`IN` `ANY` `ALL` `SOME`  
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/多行子查询.png)  
+| 单行子查询操作符 | 含义                     |
+| ------ | ------------------------ |
+| =      | equal to                 |
+| >      | greater than             |
+| >=     | greater than or equal to |
+| <      | less than                |
+| <=     | less than or equal to    |
+| <>     | not equal to             |
+
+| 多行子查询操作符 | 含义                                                         |
+| ------ | ------------------------------------------------------------ |
+| IN     | 等于列表中的**任意一个**                                     |
+| ANY    | 需要和单行比较操作符一起使用，和子查询返回的**某一个**值比较 |
+| ALL    | 需要和单行比较操作符一起使用，和子查询返回的**所有**值比较   |
+| SOME   | 实际上是ANY的别名，作用相同，一般常使用ANY                   |
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mysql子查询.png)
 
 
+```sql
+-- 单行示例 返回job_id与141号员工相同，salary比143号员工多的员工姓名，job_id和工资
+SELECT last_name, job_id, salary
+FROM   employees
+WHERE  job_id =  
+                (SELECT job_id
+                 FROM   employees
+                 WHERE  employee_id = 141)
+AND    salary >
+                (SELECT salary
+                 FROM   employees
+                 WHERE  employee_id = 143);
+```
 
 ```sql
-# 查询平均工资最低的部门id
+
+-- 多行示例 查询平均工资最低的部门id
 SELECT
 	department_id
 FROM
@@ -548,13 +582,13 @@ HAVING
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mysql相关子查询.png)
 
 ```sql
-# 使用相关子查询批量更新
+-- 使用相关子查询批量更新
 UPDATE employees e
 SET department_name = (SELECT department_name
            FROM  departments d
            WHERE e.department_id = d.department_id);
 
-# 查询员工的id,salary,按照department_name 排序
+-- 查询员工的id,salary,按照department_name 排序
 SELECT employee_id,salary
 FROM employees e
 ORDER BY (
@@ -571,7 +605,7 @@ ORDER BY (
 ```sql
 CREATE DATABASE 数据库名;
 
-# MySQL 8默认为utf-8  7默认为gbk
+-- MySQL 8默认为utf-8  7默认为gbk
 CREATE DATABASE 数据库名 CHARACTER SET 字符集;
 CREATE DATABASE mytest2 CHARACTER SET 'gbk';
 
@@ -584,19 +618,19 @@ CREATE DATABASE IF NOT EXISTS mytest3 CHARACTER SET 'utf8';
 - 使用
 
 ```sql
-
+-- 有一个S，代表多个数据库
 SHOW DATABASES;
 
-#使用的一个 mysql 中的全局函数
+-- 使用的一个 mysql 中的全局函数
 SELECT DATABASE();
 
 SHOW TABLES FROM 数据库名;
 
-# 更改数据库字符集
+-- 更改数据库字符集
 ALTER DATABASE 数据库名 CHARACTER SET 字符集;
 ALTER DATABASE mytest2 CHARACTER SET 'utf8';
 
-# 创建表结构 
+-- 创建表结构 
 CREATE TABLE dept(
   -- int类型，自增
 deptno INT(2) AUTO_INCREMENT,
@@ -608,28 +642,85 @@ birthday DATE,
   -- 主键
   PRIMARY KEY (deptno)
 );
+
+--根据已有表创建表
+CREATE TABLE emp1 AS SELECT * FROM employees; -- 创建的emp1和employees 结构数据相同 
+
+CREATE TABLE emp2 AS SELECT * FROM employees WHERE 1=2; -- 创建的emp2是空表  
+
+-- 带条件创建
+CREATE TABLE dept80
+AS 
+SELECT  employee_id, last_name, salary*12 ANNSAL, hire_date
+FROM    employees
+WHERE   department_id = 80;
+
+-- dept80 表结构 
+CREATE TABLE `dept80` (
+  `employee_id` int(11) NOT NULL DEFAULT '0',
+  `last_name` varchar(25) CHARACTER SET utf8 NOT NULL,
+  `ANNSAL` double(19,2) DEFAULT NULL,
+  `hire_date` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;  
+
 ```
 
 
 ###  修改
-- 追加列`ALTER TABLE 表名 ADD 【COLUMN】 字段名 字段类型 【FIRST|AFTER 字段名】`
-
+#### 追加列 
+`ALTER TABLE 表名 ADD 【COLUMN】 字段名 字段类型 【FIRST|AFTER 字段名】` 
 
 ```sql
-#默认添加到表中的最后一个字段的位置
+-- 默认添加到表中的最后一个字段的位置
 ALTER TABLE myemp1
 ADD salary DOUBLE(10,2); 
 
-# 添加到第一个位置
+-- 添加到第一个位置
 ALTER TABLE myemp1
 ADD phone_number VARCHAR(20) FIRST;
 
+-- 加到某个字段后
 ALTER TABLE myemp1
 ADD email VARCHAR(45) AFTER emp_name;
 
 ```
 
+#### 修改列 
+可以修改数据类型，长度、默认值和位置   
+`ALTER TABLE 表名 MODIFY 【COLUMN】 字段名1 字段类型 【DEFAULT 默认值】【FIRST|AFTER 字段名2】`
 
+```sql
+ALTER TABLE	dept80
+MODIFY last_name VARCHAR(30); 
+
+ALTER TABLE	dept80
+MODIFY salary double(9,2) default 1000;
+```
+
+#### 重命名一个列
+`ALTER TABLE 表名 CHANGE 【column】 列名 新列名 新数据类型;`
+
+```sql
+-- 将department_name 改为 dept_name varchar(15)
+ALTER TABLE  dept80
+CHANGE department_name dept_name varchar(15); 
+```
+
+#### 删除列
+`ALTER TABLE 表名 DROP 【COLUMN】字段名`
+
+```sql
+ALTER TABLE  dept80
+DROP COLUMN  job_id; 
+```
+
+### 重命名表
+
+```sql
+-- RENAME
+RENAME TABLE emp
+TO myemp;
+```
 
 ###  删除
 
@@ -637,16 +728,15 @@ ADD email VARCHAR(45) AFTER emp_name;
 DROP DATABASE 数据库名;
 DROP DATABASE IF EXISTS 数据库名;
 
-# 删除所有数据
+-- 删除所有数据
 DELETE FROM emp2;
-# 回滚,可以恢复删除的数据
+-- 回滚,可以恢复删除的数据
 ROLLBACK;
-# 不可回滚删除
-TRUNCATE TABLE detail_dept;
-# 删除字段
-ALTER TABLE 表名 DROP COLUMN 字段名
-```
 
+-- 不可回滚删除
+TRUNCATE TABLE detail_dept;
+```
+> `TRUNCATE TABLE`语句会删除表中所有的数据,释放表的存储空间,**不能回滚**  
 
 
 ### MySQL8新特性—DDL的原子化
@@ -668,9 +758,15 @@ ERROR 1051 (42S02): Unknown table 'mytest.book2'
 ### 插入　
 
 ```sql
+-- 按表所有列的默认顺序插入 
+INSERT INTO 表名
+VALUES (value1,value2,....);
+
+-- 按照指定列插入
 INSERT INTO 表名(column1 [, column2, …, columnn])
 VALUES (value1 [,value2, …, valuen]);
 
+-- 批量插入
 INSERT INTO table_name
 VALUES
 (value1 [,value2, …, valuen]),
@@ -678,7 +774,7 @@ VALUES
 ……
 (value1 [,value2, …, valuen]);
 
-# 查询和添加
+-- 查询和添加 将查询结果插入到表中
 INSERT INTO 目标表名
 (tar_column1 [, tar_column2, …, tar_columnn])
 SELECT
@@ -694,17 +790,25 @@ FROM 源表名
 UPDATE copy_emp
 SET  department_id = 110;
 
+-- 更新多列
+UPDATE table_name
+SET column1=value1, column2=value2, … , column=valuen
+[WHERE condition]
+
 ```
 
 ### 删除
 
 ```sql
 DELETE FROM table_name [WHERE <condition>];
+
+-- 全部删除
+DELETE FROM  copy_emp;
 ```
 
 ### MySQL新特性:计算列
 
-> 某一列的值是通过别的列计算得来的。例如，a列值为1、b列值为2，c列不需要手动插入，定义a+b的结果为c的值，那么c就是计算列，是通过别的列计算得来的
+> 某一列的值是通过别的列计算得来的。例如，a列值为1、b列值为2，c列不需要手动插入，定义a+b的结果为c的值，那么c就是计算列，是通过别的列计算得来的    
 > 新增的a b 就会自动生成c,修改a b的值也会更新c
 
 ```sql
@@ -717,32 +821,54 @@ c INT GENERATED ALWAYS AS (a + b) VIRTUAL
 ```
 
 ## 数据类型
+| 类型             | 类型举例                                                     |
+| ---------------- | ------------------------------------------------------------ |
+| 整数类型         | TINYINT、SMALLINT、MEDIUMINT、INT(或INTEGER)、BIGINT         |
+| 浮点类型         | FLOAT、DOUBLE                                                |
+| 定点数类型       | DECIMAL                                                      |
+| 位类型           | BIT                                                          |
+| 日期时间类型     | YEAR、TIME、DATE、DATETIME、TIMESTAMP                        |
+| 文本字符串类型   | CHAR、VARCHAR、TINYTEXT、TEXT、MEDIUMTEXT、LONGTEXT          |
+| 枚举类型         | ENUM                                                         |
+| 集合类型         | SET                                                          |
+| 二进制字符串类型 | BINARY、VARBINARY、TINYBLOB、BLOB、MEDIUMBLOB、LONGBLOB      |
+| JSON类型         | JSON对象、JSON数组                                           |
+| 空间数据类型     | 单值类型：GEOMETRY、POINT、LINESTRING、POLYGON；<br/>集合类型：MULTIPOINT、MULTILINESTRING、MULTIPOLYGON、GEOMETRYCOLLECTION |
 
-- 数据类型
+常见数据类型的属性，如下：
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mysql数据类型.png)
-
-- 数据类型属性
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQL数据类型属性.png)
+| MySQL关键字        | 含义                     |
+| ------------------ | ------------------------ |
+| NULL               | 数据列可包含NULL值       |
+| NOT NULL           | 数据列不允许包含NULL值   |
+| DEFAULT            | 默认值                   |
+| PRIMARY KEY        | 主键                     |
+| AUTO_INCREMENT     | 自动递增，适用于整数类型 |
+| UNSIGNED           | 无符号                   |
+| CHARACTER SET name | 指定一个字符集           |
 
 ### 整型
+| **整数类型** | **字节** | 有符号数取值范围                         | 无符号数取值范围       |
+| ------------ | -------- | ---------------------------------------- | ---------------------- |
+| TINYINT      | 1        | -128~127                                 | 0~255                  |
+| SMALLINT     | 2        | -32768~32767                             | 0~65535                |
+| MEDIUMINT    | 3        | -8388608~8388607                         | 0~16777215             |
+| INT、INTEGER | 4        | -2147483648~2147483647                   | 0~4294967295           |
+| BIGINT       | 8        | -9223372036854775808~9223372036854775807 | 0~18446744073709551615 |
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQL整型区别.png)
 
-- 可选属性
 
-> `M` 表示可选属性,M 的取值范围是(0,255),例如 int(5),当数据宽度小于5位的时候在数字前面需要用字符填满宽度。该项功能需要配合`ZEROFILL`使用
-> `UNSIGNED` 无符号类型（非负），所有的整数类型都有一个可选的属性`UNSIGNED`（无符号属性），无符号整数类型的最小取值为0,int类型默认显示宽度为int(11)，无符号int类型默认显示宽度为int(10)
-> `ZEROFILL` 0填充,（如果某列是ZEROFILL，那么MySQL会自动为当前列添加`UNSIGNED`属性），如果指定了`ZEROFILL`只是表示不够M位时，用0在左边填充
-> **注意:** M 的值跟 int(M)所占多少存储空间并无关系, int(3)、int(4)、int(8) 在磁盘上都是占用 4 bytes 的存储空间
-> **int(M)，必须和UNSIGNED ZEROFILL一起使用才有意义**,如果整数值超过M位，就按照实际位数存储。只是无须再用字符 0 进行填充
-
+> int(M)中 `M` 表示可选属性(显示宽度),M 的取值范围是(0,255),例如 int(5),当数据宽度小于5位的时候在数字前面需要用字符填满宽度。该项功能需要配合`ZEROFILL`使用   
+> `UNSIGNED` 无符号类型（非负），所有的整数类型都有一个可选的属性`UNSIGNED`（无符号属性），无符号整数类型的最小取值为0,int类型默认显示宽度为int(11)，无符号int类型默认显示宽度为int(10)     
+> `ZEROFILL` 0填充,（如果某列是ZEROFILL，那么MySQL会自动为当前列添加`UNSIGNED`属性），如果指定了`ZEROFILL`只是表示不够M位时，用0在左边填充    
+> **注意:** M 的值跟 int(M)所占多少存储空间并无关系, int(3)、int(4)、int(8) 在磁盘上都是占用 4 bytes 的存储空间   
+> **int(M)，必须和UNSIGNED ZEROFILL一起使用才有意义**,如果整数值超过M位，就按照实际位数存储 `显示宽度与类型可以存储的值范围无关`。只是无须再用字符 0 进行填充     
+> **从MySQL 8.0.17开始，整数数据类型不推荐使用显示宽度属性。**
 
 ### 浮点
 
-- 单精度 float
-- 双精度 double
+- 单精度 FLOAT
+- 双精度 DOUBLE
 
 ```sql
 CREATE TABLE test_double1(
@@ -761,12 +887,18 @@ f4 DOUBLE(5,2)
 
 ### 定点数 DECIMAL
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQLDECIMAL.png)
+| 数据类型                 | 字节数  | 含义               |
+| ------------------------ | ------- | ------------------ |
+| DECIMAL(M,D),DEC,NUMERIC | M+2字节 | 有效范围由M和D决定 |
 
 
 ### 位类型 BIT
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQLbit.png)
+BIT类型中存储的是二进制值，类似010110。
+
+| 二进制字符串类型 | 长度 | 长度范围     | 占用空间            |
+| ---------------- | ---- | ------------ | ------------------- |
+| BIT(M)           | M    | 1 <= M <= 64 | 约为(M + 7)/8个字节 |
 
 ```sql
 CREATE TABLE test_bit1(
@@ -776,14 +908,25 @@ f3 BIT(64) # 64位
 );
 ```
 
-> BIT类型，如果没有指定(M)，默认是1位。这个1位，表示只能存1位的二进制值。这里(M)是表示二进制的位数，位数最小值为1，最大值为64
+> BIT类型，如果没有指定(M)，默认是1位。这个1位，表示只能存1位的二进制值。这里(M)是表示二进制的位数，位数最小值为1，最大值为64    
 > 使用 select 查询结果时,结果使用16进制展示
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQLbit1.png)
 
 ### 时间日期类型
+- `YEAR`类型通常用来表示年
+- `DATE`类型通常用来表示年、月、日
+- `TIME`类型通常用来表示时、分、秒
+- `DATETIME`类型通常用来表示年、月、日、时、分、秒
+- `TIMESTAMP`类型通常用来表示带时区的年、月、日、时、分、秒
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQL时间.png)
+| 类型      | 名称     | 字节 | 日期格式            | 最小值                  | 最大值                 |
+| --------- | -------- | ---- | ------------------- | ----------------------- | ---------------------- |
+| YEAR      | 年       | 1    | YYYY或YY            | 1901                    | 2155                   |
+| TIME      | 时间     | 3    | HH:MM:SS            | -838:59:59              | 838:59:59              |
+| DATE      | 日期     | 3    | YYYY-MM-DD          | 1000-01-01              | 9999-12-03             |
+| DATETIME  | 日期时间 | 8    | YYYY-MM-DD HH:MM:SS | 1000-01-01 00:00:00     | 9999-12-31 23:59:59    |
+| TIMESTAMP | 日期时间 | 4    | YYYY-MM-DD HH:MM:SS | 1970-01-01 00:00:00 UTC | 2038-01-19 03:14:07UTC |
 
 
 
@@ -802,35 +945,114 @@ f3 BIT(64) # 64位
 > VARCHAR(M) 定义时， 必须指定 长度M，否则报错
 > 实际长度范围 `21845 = 65535/3` (一个汉字占三个字节)
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQL字符选择.png)
+| 类型       | 特点     | 空间上       | 时间上 | 适用场景             |
+| ---------- | -------- | ------------ | ------ | -------------------- |
+| CHAR(M)    | 固定长度 | 浪费存储空间 | 效率高 | 存储不大，速度要求高 |
+| VARCHAR(M) | 可变长度 | 节省存储空间 | 效率低 | 非CHAR的情况         |
+
 
 - `TEXT`
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQLtext.png)
+| 文本字符串类型 | 特点               | 长度 | 长度范围                         | 占用的存储空间 |
+| -------------- | ------------------ | ---- | -------------------------------- | -------------- |
+| TINYTEXT       | 小文本、可变长度   | L    | 0 <= L <= 255                    | L + 2 个字节   |
+| TEXT           | 文本、可变长度     | L    | 0 <= L <= 65535                  | L + 2 个字节   |
+| MEDIUMTEXT     | 中等文本、可变长度 | L    | 0 <= L <= 16777215               | L + 3 个字节   |
+| LONGTEXT       | 大文本、可变长度   | L    | 0 <= L<= 4294967295（相当于4GB） | L + 4 个字节   |
 
 > TEXT文本类型，可以存比较大的文本段，搜索速度稍慢，因此如果不是特别大的内容，建议使用CHAR，VARCHAR来代替。还有TEXT类型不用加默认值，加了也没用。而且text和blob类型的数据删除后容易导致“空洞”，使得文件碎片比较多，所以频繁使用的表不建议包含TEXT类型字段，建议单独分出去，**单独用一个表**
 
-- `ENUM`
+### ENUM
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MySQLenum.png)
 
-- `SET`
+| 文本字符串类型 | 长度 | 长度范围        | 占用的存储空间 |
+| -------------- | ---- | --------------- | -------------- |
+| ENUM           | L    | 1 <= L <= 65535 | 1或2个字节     |
+
+- 当ENUM类型包含1～255个成员时，需要1个字节的存储空间；
+- 当ENUM类型包含256～65535个成员时，需要2个字节的存储空间。
+- ENUM类型的成员个数的上限为65535个。
+
+```sql
+CREATE TABLE test_enum(
+season ENUM('春','夏','秋','冬','unknow')
+);
+
+INSERT INTO test_enum
+VALUES('春'),('秋');
+
+-- 忽略大小写
+INSERT INTO test_enum
+VALUES('UNKNOW');
+
+-- 允许按照角标的方式获取指定索引位置的枚举值
+INSERT INTO test_enum
+VALUES('1'),(3);
+```
+
+### SET
 
 ```sql
 CREATE TABLE test_set(
 s SET ('A', 'B', 'C')
 );
-#插入重复的SET类型成员时，MySQL会自动删除重复的成员
+-- 插入重复的SET类型成员时，MySQL会自动删除重复的成员
 INSERT INTO test_set (s) VALUES ('A,B,C,A');
-#向SET类型的字段插入SET成员中不存在的值时，MySQL会抛出错误。
+
+-- 向SET类型的字段插入SET成员中不存在的值时，MySQL会抛出错误。
 INSERT INTO test_set (s) VALUES ('A,B,C,D');
 
 ```
 
-- BINARY,VARBINARY
-- BLOB
-- JSON
-- 空间类型
+### 二进制字符串类型
+| 二进制字符串类型 | 特点     | 值的长度             | 占用空间  |
+| ---------------- | -------- | -------------------- | --------- |
+| BINARY(M)        | 固定长度 | M （0 <= M <= 255）  | M个字节   |
+| VARBINARY(M)     | 可变长度 | M（0 <= M <= 65535） | M+1个字节 |
+
+BINARY和VARBINARY类似于CHAR和VARCHAR，只是它们存储的是二进制字符串   
+VARBINARY类型必须指定(M)，否则报错  
+
+```sql
+CREATE TABLE test_binary1(
+f1 BINARY,
+f2 BINARY(3),
+# f3 VARBINARY,
+f4 VARBINARY(10)
+);
+```
+
+
+### BLOB
+BLOB是一个二进制大对象，可以容纳可变数量的数据,MySQL中的BLOB类型包括 `TINYBLOB`、`BLOB`、`MEDIUMBLOB`和`LONGBLOB` 4种类型，它们可容纳值的最大长度不同。可以存储一个二进制的大对象，比如`图片`、`音频`和`视频`等。
+
+### JSON
+在MySQL 5.7中，就已经支持JSON数据类型。在MySQL 8.x版本中，JSON类型提供了可以进行自动验证的JSON文档和优化的存储结构，使得在MySQL中存储和读取JSON类型的数据更加方便和高效。
+创建数据表，表中包含一个JSON类型的字段 js 
+
+```sql
+CREATE TABLE test_json(
+js json
+);
+
+-- 插入
+INSERT INTO test_json (js) 
+VALUES ('{"name":"songhk", "age":18, "address":{"province":"beijing", "city":"beijing"}}');
+
+-- 当需要检索JSON类型的字段中数据的某个具体值时，可以使用“->”和“->>”符号。
+SELECT js -> '$.name' AS NAME,js -> '$.age' AS age ,js -> '$.address.province' AS province, js -> '$.address.city' AS city
+ FROM test_json;
+
+--结果
++----------+------+-----------+-----------+
+| NAME     | age  | province  | city      |
++----------+------+-----------+-----------+
+| "songhk" | 18   | "beijing" | "beijing" |
++----------+------+-----------+-----------+
+1 row in set (0.00 sec)
+```
+
+### 空间类型
 
 
 ## 约束
@@ -840,26 +1062,37 @@ INSERT INTO test_set (s) VALUES ('A,B,C,D');
 - `PRIMARY KEY` 主键(非空且唯一)约束
 - `FOREIGN KEY` 外键约束
 - `DEFAULT` 默认值约束
-- `CHECK` 检查约束(mysql中无效 )
+- `CHECK` 检查约束(mysql中无效)
 
 
-### NOT NULL
+### NOT NULL 非空
+- 默认，所有的类型的值都可以是NULL，包括INT、FLOAT等数据类型
+- 非空约束只能出现在表对象的列上，只能某个列单独限定非空，不能组合非空
+- 一个表可以有很多列都分别限定了非空
+- 空字符串''不等于NULL，0也不等于NULL 
 
 ```sql
-CREATE TABLE 表名称(
-  字段名 数据类型,
- 字段名 数据类型 NOT NULL,
- 字段名 数据类型 NOT NULL
+
+CREATE TABLE emp(
+id INT(10) NOT NULL,
+NAME VARCHAR(20) NOT NULL,
+sex CHAR NULL
 );
 
-# 建表后修改(修改若字段中数据有null值则修改失败报错 )
+-- 建表后修改(修改若字段中数据有null值则修改失败报错 )
 alter table 表名称 modify 字段名 数据类型 not null;
+alter table student modify sname varchar(20) not null;
 
+-- 删除非空约束
+ALTER TABLE emp
+MODIFY sex VARCHAR(30) NULL;
 
+ALTER TABLE emp
+MODIFY NAME VARCHAR(15) DEFAULT 'abc' NULL;
 ```
 
 
-### UNIQUE
+### UNIQUE 唯一
 
 - 同一个表可以有多个唯一约束。
 - 唯一约束可以是某一个列的值唯一，也可以多个列组合的值唯一。
@@ -868,93 +1101,201 @@ alter table 表名称 modify 字段名 数据类型 not null;
 - MySQL会给唯一约束的列上默认创建一个唯一索引
 
 ```sql
-create table 表名称(
-字段名 数据类型,
- 字段名 数据类型  unique,
- 字段名 数据类型  unique key,
- 字段名 数据类型
-);
-create table 表名称(
-字段名 数据类型,
- 字段名 数据类型,
- 字段名 数据类型,
- constraint 约束名 unique key(字段名)
+CREATE TABLE test2(
+id INT UNIQUE, --列级约束
+last_name VARCHAR(15) ,
+email VARCHAR(25),
+salary DECIMAL(10,2),
+--表级约束  uk_test2_email 是约束名 
+CONSTRAINT uk_test2_email UNIQUE(email)
 );
 
-create table 表名称(
-字段名 数据类型,
- 字段名 数据类型,
- 字段名 数据类型,
-  unique key(字段列表) #字段列表中写的是多个字段名，多个字段名用逗号分隔，表示那么是复合唯一，即多个字段的组合是唯一的
-);
-```
-
-### PRIMARY KEY
-
-> 主键约束相当于**唯一约束+非空约束**的组合，主键约束列不允许重复，也不允许出现空值
-> 如果是多列组合的复合主键约束，那么这些列都不允许为空值，并且组合的值不允许重复
-
-
-### AUTO_INCREMENT
-
-> 一个表最多只能有一个自增长列
-> 增长列约束的列必须是键列（主键列，唯一键列）
-
->  `AUTO_INCREMENT` 8.0之前自增的标识维护在内存中,若重启mysql 就会重置为表中最大的id+1
-> MySQL 8.0将自增主键的计数器持久化到 重做日志 中。每次计数器发生改变，都会将其写入重做日志中。如果数据库重启，InnoDB会根据重做日志中的信息来初始化计数器的内存值
-
-###  FOREIGN KEY
-
-> 限制某个表某个字段的引用完整性
-> 插入时外键对应的数据必须存在才能插入成功
-> 删表时，先删从表（或先删除外键约束），再删除主表
-
-```sql
-create table dept( #主表
-did int primary key, #部门编号
- dname varchar(50) #部门名称
+-- unique,key 二者相同作用 
+create table student(
+	sid int,
+    sname varchar(20),
+    tel char(11) unique,
+    cardid char(18) unique key
 );
 
-create table emp(#从表
-eid int primary key,  #员工编号
-ename varchar(5),   #员工姓名
-deptid int, #员工所在的部门
-foreign key (deptid) references dept(did)  #在从表中指定外键约束
-#emp表的deptid和和dept表的did的数据类型一致，意义都是表示部门的编号
+create table student_course(
+    id int,
+	sid int,
+    cid int,
+    score int,
+    unique key(sid,cid)  --复合唯一
 );
 ```
+#### 删除唯一约束
 
-> 创建完成可以看到
-> ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MSYQL外键.png)
-
-- 外键约束等级
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/外键约束等级.png)
-
-
-### CHECK
-
-> 检查某个字段的值是否符号xx要求，一般指的是值的范围
-> MySQL5.7 可以使用check约束，但check约束对数据验证没有任何作用。添加数据时，没有任何错误或警告
-> 但是MySQL 8.0中可以使用check约束了
+- 添加唯一性约束的列上也会自动创建唯一索引。
+- 删除唯一约束只能通过删除唯一索引的方式删除。
+- 删除时需要指定唯一索引名，唯一索引名就和唯一约束名一样。
+- 如果创建唯一约束时未指定名称，如果是单列，就默认和列名相同；如果是组合列，那么默认和()中排在第一个的列名相同。也可以自定义唯一性约束名。
 
 ```sql
-# 限制 sal的值
+ALTER TABLE USER 
+DROP INDEX uk_name_pwd;
+```
+
+### PRIMARY KEY 主键约束
+
+- 主键约束相当于**唯一约束+非空约束**的组合，主键约束列不允许重复，也不允许出现空值      
+- 如果是多列组合的复合主键约束，那么这些列都不允许为空值，并且组合的值不允许重复   
+- **MySQL的主键名总是PRIMARY**，就算自己命名了主键约束名也没用。  
+- 当创建主键约束时，系统默认会在所在的列或列组合上建立对应的**主键索引**（能够根据主键查询的，就根据主键查询，效率更高）。如果删除主键约束了，主键约束对应的索引就自动删除了。 
+
+```sql
+CREATE TABLE temp(
+	id INT PRIMARY KEY,
+    NAME VARCHAR(20)
+);
+
+-- 列约束
+CREATE TABLE emp4(
+id INT PRIMARY KEY AUTO_INCREMENT ,
+NAME VARCHAR(20)
+);
+
+-- 表约束
+CREATE TABLE emp5(
+id INT NOT NULL AUTO_INCREMENT,
+NAME VARCHAR(20),
+pwd VARCHAR(15),
+CONSTRAINT emp5_id_pk PRIMARY KEY(id)
+);
+
+--复合主键
+CREATE TABLE emp6(
+id INT NOT NULL,
+NAME VARCHAR(20),
+pwd VARCHAR(15),
+CONSTRAINT emp7_pk PRIMARY KEY(NAME,pwd)
+);
+
+-- 建表后增加主键
+ALTER TABLE student ADD PRIMARY KEY (sid);
+
+ALTER TABLE emp5 ADD PRIMARY KEY(NAME,pwd);
+
+-- 删除主键
+ALTER TABLE emp5 DROP PRIMARY KEY;
+```
+
+### AUTO_INCREMENT 自增约束
+
+- 一个表最多只能有一个自增长列
+- 增长列约束的列必须是键列（主键列，唯一键列）
+- 自增约束的列的数据类型必须是整数类型
+
+>  `AUTO_INCREMENT` 8.0之前自增的标识维护在内存中,若重启mysql 就会重置为表中最大的id+1    
+> MySQL 8.0将自增主键的计数器持久化到 `redolog`重做日志 中。每次计数器发生改变，都会将其写入重做日志中。如果数据库重启，InnoDB会根据重做日志中的信息来初始化计数器的内存值
+
+```sql
+CREATE TABLE employee (
+  eid INT PRIMARY KEY AUTO_INCREMENT,
+  ename VARCHAR (20)
+) ;
+
+-- 建表后增加自增约束
+ALTER TABLE employee MODIFY eid INT AUTO_INCREMENT;
+
+-- 删除自增约束,相当于更新字段描述 去除掉 AUTO_INCREMENT 
+ALTER TABLE employee MODIFY eid INT;
+
+
+```
+
+###  FOREIGN KEY 外键约束
+
+- 限制某个表某个字段的引用完整性
+- 插入时外键对应的数据必须存在才能插入成功
+- 删表时，先删从表（或先删除外键约束），再删除主表
+
+```sql
+CREATE TABLE dept (
+  --主表
+  did INT PRIMARY KEY,
+  --部门编号
+  dname VARCHAR (50) #部门名称
+) ;
+
+CREATE TABLE emp (
+  --从表
+  eid INT PRIMARY KEY,
+  --员工编号
+  ename VARCHAR (5),
+  --员工姓名
+  deptid INT,
+  --员工所在的部门
+  FOREIGN KEY (deptid) REFERENCES dept (did) -- 在从表中指定外键约束
+  --emp表的deptid和和dept表的did的数据类型一致，意义都是表示部门的编号
+) ;
+
+--说明：
+--（1）主表dept必须先创建成功，然后才能创建emp表，指定外键成功。
+--（2）删除表时，先删除从表emp，再删除主表dept
+
+```
+
+> 创建完成可以看到  
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MSYQL外键.png)
+
+#### 外键约束等级
+
+* `Cascade方式`：在父表上update/delete记录时，同步update/delete掉子表的匹配记录 
+
+* `Set null方式`：在父表上update/delete记录时，将子表上匹配记录的列设为null，但是要注意子表的外键列不能为not null  
+
+* `No action方式`：如果子表中有匹配的记录，则不允许对父表对应候选键进行update/delete操作  
+
+* `Restrict方式`：同no action， 都是立即检查外键约束
+
+* `Set default方式`（在可视化工具SQLyog中可能显示空白）：父表有变更时，子表将外键列设置成一个默认的值，但Innodb不能识别
+
+如果没有指定等级，就相当于Restrict方式。
+
+对于外键约束，最好是采用: `ON UPDATE CASCADE ON DELETE RESTRICT` 的方式。
+
+
+### CHECK 约束
+
+- 检查某个字段的值是否符号xx要求，一般指的是值的范围   
+- MySQL5.7 可以使用check约束，但check约束对数据验证没有任何作用。添加数据时，没有任何错误或警告    
+- 但是**MySQL 8.0中可以使用check约束了**   
+
+```sql
+-- 限制 sal的值
 CREATE TABLE tests10 (id int,lastname VARCHAR(15),sal DECIMAL(10,2) CHECK (sal >200))
 
+-- 限制性别
+CREATE TABLE employee (
+  eid INT PRIMARY KEY,
+  ename VARCHAR (5),
+  gender CHAR CHECK ('男' OR '女')
+) ;
+
+
 ```
 
-### DEFAULT
+### DEFAULT 默认约束
 
-> 设置默认值避免NULL
+> 设置默认值避免`NULL`,在插入数据时，如果此字段没有显式赋值，则赋值为默认值  
 
 ```sql
-create table employee(
-eid int primary key,
- ename varchar(20) not null,
- gender char default '男',
- tel char(11) not null default '' #默认是空字符串
-);
+CREATE TABLE employee (
+  eid INT PRIMARY KEY,
+   ename VARCHAR (20) NOT NULL,
+   gender CHAR DEFAULT '男',
+   tel CHAR(11) NOT NULL DEFAULT '' -- 默认是空字符串
+) ;
+
+-- 增加默认约束
+ALTER TABLE employee MODIFY gender CHAR DEFAULT '男';
+--取消 默认约束
+ALTER TABLE employee MODIFY gender CHAR;
+
 ```
 
 ## 视图
@@ -968,7 +1309,15 @@ CREATE VIEW empvu80
 AS
 SELECT employee_id, last_name, salary
 FROM  employees
-WHERE  department_id = 80;
+WHERE  department_id = 80; 
+
+-- 多表联合视图
+CREATE VIEW emp_dept
+AS 
+SELECT ename,dname
+FROM t_employee LEFT JOIN t_department
+ON t_employee.did = t_department.did;
+
 ```
 
 - 可以创建单表视图
@@ -1496,9 +1845,11 @@ ON d.department_id = e.department_id
 
 # 高级篇
 ## 字符集
-
-> 8.0 默认字符集为 `utf8mb4`,5.7 默认字符集为 `utf-8`,通过修改 `/etc/my.cnf` 文件,修改编码方式,修改后只能对新创建的数据库生效
-> 也可以通过 `alert table` 修改数据库的字符集
+ 
+> 8.0 默认字符集为 `utf8mb4`    
+> 5.7 默认字符集为 `utf-8`        
+> 通过修改 `/etc/my.cnf` 文件,修改编码方式,修改后只能对新创建的数据库生效      
+> 也可以通过 `alert table` 修改数据库的字符集      
 
 - 8默认字符集
 
@@ -1522,10 +1873,10 @@ show variables like 'character%';
 
 ### 字符集的关系
 
-> `utf8` 字符集表示一个字符需要1-4个字节
-> `utf8mb3` 是阉割过的 utf8 使用1-3个字节表示字符
-> `utf8mb4` 是全面的utf8字符集,使用1-4个字节表示字符,可以存储`emoji表情`
-> MySQL中 `utf8=utf8mb3`
+> `utf8` 字符集表示一个字符需要1-4个字节    
+> `utf8mb3` 是阉割过的 utf8 使用1-3个字节表示字符   
+> `utf8mb4` 是全面的utf8字符集,使用1-4个字节表示字符,可以存储`emoji表情`     
+> MySQL中 `utf8=utf8mb3`    
 
 
 
@@ -1537,15 +1888,27 @@ show variables like 'character%';
 
 
 ## 存储引擎对比
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/innodb对比.png)
+
+| 对比项         | **MyISAM**                                               | **InnoDB**                                                   |
+| -------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
+| 外键           | 不支持                                                   | 支持                                                         |
+| 事务           | 不支持                                                   | 支持                                                         |
+| 行表锁         | 表锁，即使操作一条记录也会锁住整个表，不适合高并发的操作 | 行锁，操作时只锁某一行，不对其它行有影响，适合高并发的操作   |
+| 缓存           | 只缓存索引，不缓存真实数据                               | 不仅缓存索引还要缓存真实数据，对内存要求较高，而且内存大小对性能有决定性的影响 |
+| 自带系统表使用 | Y                                                        | N                                                            |
+| 关注点         | 性能：节省资源、消耗少、简单业务                         | 事务：并发写、事务、更大资源                                 |
+| 默认安装       | Y                                                        | Y                                                            |
+| 默认使用       | N                                                        | Y                                                            |
+
+<!-- ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/innodb对比.png) -->
 
 
 ## 索引
 
-> 索引是存储引擎中用于快速找到数据记录的一种**数据结构**,好比书的目录
-> MySQL中进行数据查找时,首先查看查询条件是否命中某条索引,符合则通过索引查找相关数据,如果不符合则需要全表扫描
-> 建立索引的目的是为了减少磁盘I/O的次数,加快查询速率
-> 索引是在存储引擎中实现的,因此每种存储引擎不一定完全相同,所有存储引擎每个表最少支持16个索引
+> 索引是存储引擎中用于快速找到数据记录的一种**数据结构**,好比书的目录   
+> MySQL中进行数据查找时,首先查看查询条件是否命中某条索引,符合则通过索引查找相关数据,如果不符合则需要全表扫描    
+> 建立索引的目的是为了减少磁盘I/O的次数,加快查询速率   
+> 索引是在存储引擎中实现的,因此每种存储引擎不一定完全相同,所有存储引擎每个表最少支持16个索引    
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/二叉搜索树.png)
 
@@ -1616,8 +1979,8 @@ show variables like 'character%';
 > - 二级索引访问需要进行两次索引查找
 
 #### 二级索引(非聚簇索引)
-> 一个表中只能有一个聚簇索引,但是可以有多个非聚簇索引,使用非主键列作为索引,称为非聚簇索引
-> 依据对应列构建B+树,与聚簇索引不同的是,在叶子节点中存储的**不是主键和所有值**,而是该列和主键的值
+> 一个表中`只能有一个聚簇索引`,但是可以`有多个非聚簇索引`,使用非主键列作为索引,称为非聚簇索引        
+> 依据对应列构建B+树,与聚簇索引不同的是,在叶子节点中存储的**不是主键和所有值**,而是`该列和主键的值`    
 
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/非聚簇索引.png)
@@ -1651,11 +2014,95 @@ show variables like 'character%';
 **根页面万年不动**
 - 自动创建聚簇索引时,会为索引创建一个根页面
 - 插入数据时,将数据记录到根页面
-- 根页面空间用完,此时会将根页面中所有记录复制到一个新分配的页`a`, 对这个页进行页分裂,得到页`b`,新插入的数据会进入到`a`或`b`中,而根页面升级为目录页
+- 根页面空间用完,此时会将根页面中所有记录复制到一个新分配的页`a`, 对这个页进行页分裂,得到页`b`,新插入的数据会进入到`a`或`b`中,而**根页面升级为目录页**  
+
+**二级索引的内节点的目录项记录的内容实际上是由三个部分构成的**,防止值重复无法判断插入位置
+- 索引列的值
+- 主键值
+- 页号
+
+**一个页面最少可以存储2条记录**
+
+
+### MyISAM中的索引方案
+| 索引/存储引擎 | MyISAM | InnoDB | Memory |
+| ------------- | ------ | ------ | ------ |
+| B-Tree索引    | 支持   | 支持   | 支持   |
+
+即使多个存储引擎支持同一种类型的索引，但是他们的实现原理也是不同的。Innodb和MyISAM默认的索引是Btree索引；而Memory默认的索引是Hash索引。   
+MyISAM引擎使用B+Tree作为索引结构，叶子节点的data域存放的是`数据记录的地址`   
+**MyISAM的索引方式都是“非聚簇”的，与InnoDB包含1个聚簇索引是不同的**  
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/MyISAM引擎索引.jpg)   
+
+**小结两种引擎中索引的区别：**
+
+① 在InnoDB存储引擎中，我们只需要根据主键值对`聚簇索引`进行一次查找就能找到对应的记录，而在`MyISAM`中却需要进行一次`回表`(通过索引获取的地址去获取数据的过程)操作，意味着MyISAM中建立的索引相当于全部都是`二级索引`。 
+
+> `InnoDB`中的回表是指二级索引获取到主键后去聚簇索引中查询数据的过程     
+> `MyISAM`中的回表是指索引获取到数据地址后去磁盘获取数据的过程   
+
+② InnoDB的数据文件本身就是索引文件，而MyISAM索引文件和数据文件是`分离的`，索引文件仅保存数据记录的地址。
+
+③ InnoDB的非聚簇索引data域存储相应记录`主键的值`，而MyISAM索引记录的是`地址`。换句话说，InnoDB的所有非聚簇索引都引用主键作为data域。
+
+④ MyISAM的回表操作是十分`快速`的，因为是拿着地址偏移量直接到文件中取数据的，反观InnoDB是通过获取主键之后再去聚簇索引里找记录，虽然说也不慢，但还是比不上直接用地址去访问。
+
+⑤ InnoDB要求表`必须有主键`（`MyISAM可以没有`）。如果没有显式指定，则MySQL系统会自动选择一个可以非空且唯一标识数据记录的列作为主键。如果不存在这种列，则MySQL自动为InnoDB表生成一个隐含字段作为主键，这个字段长度为6个字节，类型为长整型。
+
+
 
 ### 索引的代价
 - 空间:每个B+树的每个节点都是一个数据页,每个页默认`16KB`
-- 时间:每次对表进行`增删改`时,都需要去修改各个B+树索引
+- 时间:每次对表进行`增删改`时,都需要去修改各个B+树索引,增、删、改操作可能会对节点和记录的排序造成破坏，所以存储引擎需要额外的时间进行一些`记录移位`，`页面分裂`、`页面回收`等操作来维护好节点和记录的排序  
+
+
+### 数据结构选择的合理性
+
+#### HASH索引
+- hash索引仅能满足 `=` `<>` 和 `IN`查询,如果进行范围查询,时间复杂度会退化为 `O(n)` 
+- hash数据的存储是没有顺序的,若使用`ORDER BY`的情况下,还需对数据重新排序
+- 对于联合索引情况下,hash值是将联合索引键合并后来计算,无法对单个键或几个索引进行查询
+- 大数据量下,或者重复数据较多(年龄/性别...),hash碰撞过多效率就会下降 
+
+| 索引/存储引擎 | MyISAM | InnoDB | Memory |
+| ------------- | ------ | ------ | ------ |
+| HASH索引    | 不支持   | 不支持   | 支持   |
+
+> Redis 存储核心就是Hash表     
+> 对于经常使用等值判断的情况,Hash索引是个不错的选择   
+> InnoDB不支持Hash索引,但是提供`自适应Hash索引(Adaptive Hash Index)`,若一条数据经常被访问,满足一定条件时就会将数据页地址存放到Hash表中   
+
+
+#### 二叉搜索树  
+- 一个节点只能有两个子节点
+- 左子节点 < 本节点,右子节点 > 本节点  
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/标准二叉搜索.png) 
+
+存在特殊情况,若数据顺序为 (5,22,23,34,77,89,91) 那么构造出来的二叉搜索树则为
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/偏离二叉搜索树.png)   
+
+这样的搜索树的效率就会大大下降,如果搜索 91 的话 和`链表`无差 
+
+#### 平衡二叉树 
+基于`二叉树退化成链表`的问题,提出了 `平衡二叉搜索树 Balanced Binary Tree` 又称为AVL树     
+平衡二叉树首先需要符合二叉查找树,其次必须满足任何节点的两个子树的高度最大差为1    
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/平衡二叉树的缺点.png)  
+
+#### B树  
+`Balance Tree` 即 多路平衡查找树,简写为`B-Tree`  
+**在非叶子(最底层)节点上也存放对应数据(而不是像B+树存放目录,所有真实数据都存在叶子节点)**   
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/B树示例.jpg)
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/完整的B树.png)  
+
+#### B+树  
+`B+`树由`B树`和`索引顺序访问方法(ISAM)`演化而来
+
 
 ### 索引的分类
 
@@ -1669,6 +2116,18 @@ show variables like 'character%';
 
 
 ### 创建索引
+
+- `UNIQUE`、`FULLTEXT`和`SPATIAL`为可选参数，分别表示唯一索引、全文索引和空间索引；
+- `INDEX`与`KEY`为同义词，两者的作用相同，用来指定创建索引；
+- `index_name`指定索引的名称，为可选参数，如果不指定，那么MySQL默认col_name为索引名；
+- `col_name`为需要创建索引的字段列，该列必须从数据表中定义的多个列中选择；
+- `length`为可选参数，表示索引的长度，只有字符串类型的字段才能指定索引长度；
+- `ASC`或`DESC`指定升序或者降序的索引值存储。
+
+```sql
+ALTER TABLE table_name 
+ADD [UNIQUE | FULLTEXT | SPATIAL] [INDEX | KEY] [index_name] (col_name[length],...) [ASC | DESC]
+```
 
 - 隐式创建
   - `主键`,`唯一UNIQUE字段`,`外键`会默认创建索引
@@ -1696,7 +2155,7 @@ name varchar(30) NOT NULL,
 UNIQUE INDEX uk_idx_id(id)
 );
 
-# 创建单列索引
+# 创建单列索引 前20个字符
 CREATE TABLE test2(
 id INT NOT NULL,
 name CHAR(50) NULL,
@@ -2039,7 +2498,20 @@ MySQL 5.6.3以前只能 `EXPLAIN SELECT`;MYSQL 5.6.3以后就可以 `EXPLAIN SEL
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/explain属性.png)
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/explain列的作用.png)
+| 列名          | 描述                                                     |
+| ------------- | -------------------------------------------------------- |
+| id            | 在一个大的查询语句中每个SELECT关键字都对应一个`唯一的id` |
+| select_type   | SELECT关键字对应的那个查询的类型                         |
+| table         | 表名                                                     |
+| partitions    | 匹配的分区信息                                           |
+| type          | 针对单表的访问方法                                       |
+| possible_keys | 可能用到的索引                                           |
+| key           | 实际上使用的索引                                         |
+| key_len       | 实际使用到的索引长度                                     |
+| ref           | 当使用索引列等值查询时，与索引列进行等值匹配的对象信息   |
+| rows          | 预估的需要读取的记录条数                                 |
+| filtered      | 某个表经过搜索条件过滤后剩余记录条数的百分比             |
+| Extra         | 一些额外的信息                                           |
 
 #### table
   - 查询的每一行记录都对应一个单表,若是关联查询就会出现多行记录对应多个表
@@ -2047,7 +2519,7 @@ MySQL 5.6.3以前只能 `EXPLAIN SELECT`;MYSQL 5.6.3以后就可以 `EXPLAIN SEL
 #### id
   - 一个查询语句中每个select都对应一个唯一的id
   - 查询优化器可能对涉及子查询的语句进行重写,转变为多表查询,导致`explain`结果id只有一个
-  - 使用`union` 查询会生成临时表,`explain`结果有三条记录,而u`nion all`不会生成临时表
+  - 使用`union` 查询会生成临时表,`explain`结果有三条记录,而`union all`不会生成临时表
   - id若相同,可以认为是一组,从上往下顺序执行
   - id值越大,优先级越高,越先执行
   - 每个id表示一趟独立查询
@@ -2236,7 +2708,7 @@ WHERE student.age=30 AND student.name = 'abc' AND student.classId>20;
 - `IS NULL`可以使用索引,`IS NOT NULL` `NOT LIKE`无法使用索引
   - 针对`NOT NULL`可以设置默认值0或者空字符串进行优化
 - `like '%abc'` like以通配符开头,索引失效
-  - `阿里开发`严谨左模糊,全模糊
+  - `阿里开发`严禁左模糊,全模糊
 - `OR` 前后存在任意`非索引`列,索引失效
 - 数据库和表的字符集要统一,最好统一为`utf8mb4`
 
@@ -2311,6 +2783,7 @@ EXPLAIN  SELECT SQL_NO_CACHE * FROM student ORDER BY age,classid;
 #增加limit过滤条件，使用上索引了。
 EXPLAIN  SELECT SQL_NO_CACHE * FROM student ORDER BY age,classid LIMIT 10;
 ```
+
 - order by不限制条目数,索引失效
 - order by时顺序错误，索引失效
 - order by时规则不一致, 索引失效 （顺序错，不索引；方向反(desc)，不索引）
@@ -2334,8 +2807,8 @@ EXPLAIN  SELECT SQL_NO_CACHE * FROM student ORDER BY age,classid LIMIT 10;
 - 对于自增id的表直接对id进行判断
 
 ### 覆盖索引
-`索引列+主键` 包含 `SELECT 到 FROM`之间查询的列
-例:索引列为`c1,c2`那么若`select c1,c2 from table` 就不会进行回表操作,直接查询索引返回数据,包括`主键id`,这种情况称为覆盖索引
+`索引列+主键` 包含 `SELECT 到 FROM`之间查询的列    
+例:索引列为`c1,c2`那么若`select c1,c2 from table` 就不会进行回表操作,直接查询索引返回数据,包括`主键id`,这种情况称为覆盖索引    
 同时`select c1 from table` `select id,c1,c2 from table` 也是
 
 > 一个索引包含了满足查询结果的数据就叫覆盖索引
@@ -2356,12 +2829,12 @@ EXPLAIN SELECT * FROM student WHERE NAME LIKE '%abc';
 EXPLAIN SELECT id,age FROM student WHERE NAME LIKE '%abc';
 ```
 
-优点: 避免回表;可以将随机IO变为顺序IO加快效率
+优点: 避免回表;可以将`随机IO`变为`顺序IO`加快效率    
 缺点: 索引字段的维护的代价
 
 ### 索引下推ICP
 `Index Condition Pushdown(ICP)` 是MySQL5.6中的新特性,`Extra`显示为`Using index condition`
-索引下推真正发挥作用的地方在于:针对失效索引的生效情况
+索引下推真正发挥作用的地方在于:**针对失效索引的生效情况**   
 
 ```sql
 # 联合索引(`zipcode`,`lastname`,`firstname`)
@@ -2372,7 +2845,7 @@ WHERE zipcode='000001'
 AND lastname LIKE '%张%'
 AND address LIKE '%北京市%';
 
-# 下面这种虽然也是索引下推,但是并没有发挥真正索引下推的作用,理解
+# 下面这种虽然也是索引下推,但是并没有发挥真正索引下推的作用,实际上索引没有失效,理解
 EXPLAIN SELECT * FROM people
 WHERE zipcode='000001'
 AND lastname LIKE '张%'
@@ -2402,7 +2875,7 @@ SELECT * FROM A WHERE EXISTS (SELECT CC FROM B WHERE B.CC=A.CC)
 
 `COUNT(*)` `COUNT(1)` `COUNT(字段)`比较
 
-> `COUNT(*)` `COUNT(1)` 无区别,自动选择占用空间更小的二级索引,`MyISAM`引擎下复杂度为`O(1)`,因为有`row_count`值直接存储记录数,`InnoDB`下为`O(n)`需要全表扫描
+> `COUNT(*)` `COUNT(1)` 无区别,自动选择占用空间更小的二级索引,`MyISAM`引擎下复杂度为`O(1)`,因为有`row_count`值直接存储记录数,`InnoDB`下为`O(n)`需要全表扫描   
 > `COUNT(字段)`要尽量采用二级索引,不要采用聚簇索引
 
 #### SELECT*

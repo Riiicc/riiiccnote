@@ -6,6 +6,8 @@
 [JVM](https://doocs.gitee.io/jvm/)    
 [CS自学指南](https://csdiy.wiki/)    
 [值得一看的技术类书籍列表](https://doocs.github.io/technical-books/#/)    
+[小林Coding](https://www.xiaolincoding.com/)    
+[阿秀的学习笔记](https://interviewguide.cn/)    
 
 # 日常
 
