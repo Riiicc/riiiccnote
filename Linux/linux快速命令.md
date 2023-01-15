@@ -1,3 +1,9 @@
+# Linux 速查
+
+## 文件权限 
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/Linux文件权限.jpg)
+
+
 ```bash
 
 sudo sed -e 's|^mirrorlist=|#mirrorlist=|g' \

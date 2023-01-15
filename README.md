@@ -8,6 +8,7 @@
 [值得一看的技术类书籍列表](https://doocs.github.io/technical-books/#/)    
 [小林Coding](https://www.xiaolincoding.com/)    
 [阿秀的学习笔记](https://interviewguide.cn/)    
+[java-tutorial](https://github.com/dunwu/java-tutorial)    
 
 # 日常
 
@@ -42,6 +43,7 @@
 - [Spring注解](Java/Spring注解.md)
 - [SpringBoot](Java/SpringBoot.md)
 - [SpringSecurity](Java/SpringSecurity.md)
+- [SpringCloud](java/SpringCloud.md)
 
 ## MyBatis
 - [Mybatis](/Java/MyBatis.md)
@@ -60,9 +62,11 @@
 ## 数据库
 - [Redis](Java/Redis.md)
 - [MySQL](Java/MySQL.md)  
+- [MySQL调优笔记](Java/MySQL调优笔记.md)  
 
 
 # Linux 
+* [Nginx](/Linux/Nginx)  
 * [linux快速命令](/Linux/linux快速命令)
 * [VIM](/Linux/VIM)  
 
@@ -87,11 +91,13 @@
 - [msyql安装](/服务器配置/msyql安装.md)
 - [nginx配置](/服务器配置/nginx配置.md)
 - [redis安装](/服务器配置/redis安装.md)
+- [Keepalived配置](/服务器配置/Keepalived配置.md)
 
 
 # 计算机基础
 
-- [小灰算法](/计算机基础/小灰算法.md)
+- [数据结构与算法](/计算机基础/数据结构与算法.md)
+- [Java设计模式](/计算机基础/Java设计模式.md)
 - [常用单词读法](/计算机基础/常用单词.md)
 
 # 前端
@@ -100,11 +106,6 @@
 - [ThymeLeaf](/前端/ThymeLeaf.md)
 - [ES6学习](/前端/ES6学习.md)
 - [CSS](/前端/CSS.md)
-
-
-
-
-
 
 
 # 软件

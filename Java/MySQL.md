@@ -2557,7 +2557,7 @@ MySQL 5.6.3以前只能 `EXPLAIN SELECT`;MYSQL 5.6.3以后就可以 `EXPLAIN SEL
   - `Impossible WHERE`where条件永远false(条件不生效) `where 1!=1`
   - `Using where` where条件生效(where是索引列不会显示)
   - `no matching min/max row`使用函数`min/max`并没有符合where条件的记录
-  - `Using index` 查询列表和条件只包含某个索引列,会免去回表操作,高效率👍😂
+  - `Using index` 查询列表和条件只包含某个索引列,会免去回表操作,高效率👍
   - `Using index condition` 索引条件下推
   - `Using join buffer`
   - `Using filesort`如对非索引列进行排序,低效率👎
@@ -2652,8 +2652,7 @@ EXPLAIN SELECT SQL_NO_CACHE * FROM student WHERE age=30 AND classId=4 AND NAME =
 
 ```sql
 # 删除idx_age 和 idx_age_classid 的前提下
-# 这两个SQL 都无法使用 idx_age_classid_name 联合索引
-EXPLAIN SELECT SQL_NO_CACHE * FROM student WHERE student.age=30 AND student.name = 'abcd' ;
+# 这个SQL 都无法使用 idx_age_classid_name 联合索引
 EXPLAIN SELECT SQL_NO_CACHE * FROM student WHERE student.classid=1 AND student.name = 'abcd';
 
 ```
@@ -2852,9 +2851,22 @@ AND lastname LIKE '张%'
 AND firstname LIKE '三%';
 ```
 
-设置索引下推是否开启,默认开启:`SET optimizer_switch = 'index_condition_pushdown=on/off';`
+设置索引下推是否开启,默认开启:   
+`SET optimizer_switch = 'index_condition_pushdown=on/off';`    
+`SET  @@optimizer_switch='index_condition_pushdown=on/off';` 
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/索引下推使用条件.png)
+
+### MRR(Multi-Range Read) 优化
+`MySQL5.6` 开始支持`MRR`默认是开启状态, `MRR` 优化的目的是为了减少磁盘的随机访问,并且将随机访问转化为顺序访问  
+是否启用`MRR`可以通过参数 `optimizer_switch` 中的属性 `mrr`和`mrr_cost_based`来进行配置   
+`MRR`优化可适用于`range` `ref` `eq_ref`类型的查询
+
+`SET  @@optimizer_switch='mrr=on,mrr_cost_based=on';`   
+
+若设置为 `mrr=on,mrr_cost_based=on` 启用优化,`mrr_cost_based`标记表示是否通过`cost based(基于成本消耗)` 的方式来选择是否启用`MRR`    
+若设置为 `mrr=on,mrr_cost_based=off` 总是启用优化    
+
 
 
 ### 其他查询优化策略
@@ -2957,6 +2969,32 @@ ER模型三要素: 实体,属性,关系
 
 ### 优化策略
 P159 P160
+
+#### 硬件优化 
+**服务器的硬件性能直接决定着MySQL数据库的性能。**硬件的性能瓶颈直接决定MySQL数据库的运行速度和效率。针对性能瓶颈提高硬件配置，可以提高MySQL数据库查询、更新的速度。  
+
+
+#### 优化MySql参数
+- `innodb_buffer_pool_size`：这个参数是Mysql数据库最重要的参数之一，表示InnoDB类型的`表和索引的最大缓存`。它不仅仅缓存`索引数据`，还会缓存`表的数据`。这个值越大，查询的速度就会越快。但是这个值太大会影响操作系统的性能。
+- `key_buffer_size`：表示`索引缓冲区的大小`。索引缓冲区是所有的`线程共享`。增加索引缓冲区可以得到更好处理的索引（对所有读和多重写）。当然，这个值不是越大越好，它的大小取决于内存的大小。如果这个值太大，就会导致操作系统频繁换页，也会降低系统性能。对于内存在`4GB`左右的服务器该参数可设置为`256M`或`384M`。
+- `table_cache`：表示`同时打开的表的个数`。这个值越大，能够同时打开的表的个数越多。物理内存越大，设置就越大。默认为2402，调到512-1024最佳。这个值不是越大越好，因为同时打开的表太多会影响操作系统的性能。
+- `query_cache_size`：表示`查询缓冲区的大小`。可以通过在MySQL控制台观察，如果Qcache_lowmem_prunes的值非常大，则表明经常出现缓冲不够的情况，就要增加Query_cache_size的值；如果Qcache_hits的值非常大，则表明查询缓冲使用非常频繁，如果该值较小反而会影响效率，那么可以考虑不用查询缓存；Qcache_free_blocks，如果该值非常大，则表明缓冲区中碎片很多。MySQL8.0之后失效。该参数需要和query_cache_type配合使用。
+- `query_cache_type`的值是0时，所有的查询都不使用查询缓存区。但是query_cache_type=0并不会导致MySQL释放query_cache_size所配置的缓存区内存。
+  - 当query_cache_type=1时，所有的查询都将使用查询缓存区，除非在查询语句中指定`SQL_NO_CACHE`，如SELECT SQL_NO_CACHE * FROM tbl_name。 
+  - 当query_cache_type=2时，只有在查询语句中使用`SQL_CACHE`关键字，查询才会使用查询缓存区。使用查询缓存区可以提高查询的速度，这种方式只适用于修改操作少且经常执行相同的查询操作的情况。
+- `sort_buffer_size`：表示每个`需要进行排序的线程分配的缓冲区的大小`。增加这个参数的值可以提高`ORDER BY`或`GROUP BY`操作的速度。默认数值是2 097 144字节（约2MB）。对于内存在4GB左右的服务器推荐设置为6-8M，如果有100个连接，那么实际分配的总共排序缓冲区大小为100 × 6 ＝ 600MB。 
+- `join_buffer_size = 8M`：表示`联合查询操作所能使用的缓冲区大小`，和sort_buffer_size一样，该参数对应的分配内存也是每个连接独享。
+- `read_buffer_size`：表示`每个线程连续扫描时为扫描的每个表分配的缓冲区的大小（字节）`。当线程从表中连续读取记录时需要用到这个缓冲区。SET SESSION read_buffer_size=n可以临时设置该参数的值。默认为64K，可以设置为4M。 
+- `innodb_flush_log_at_trx_commit`：表示`何时将缓冲区的数据写入日志文件`，并且将日志文件写入磁盘中。该参数对于innoDB引擎非常重要。该参数有3个值，分别为0、1和2。该参数的默认值为1。
+  - 值为`0`时，表示`每秒1次`的频率将数据写入日志文件并将日志文件写入磁盘。每个事务的commit并不会触发前面的任何操作。该模式速度最快，但不太安全，mysqld进程的崩溃会导致上一秒钟所有事务数据的丢失。
+  - 值为`1`时，表示`每次提交事务时`将数据写入日志文件并将日志文件写入磁盘进行同步。该模式是最安全的，但也是最慢的一种方式。因为每次事务提交或事务外的指令都需要把日志写入（flush）硬盘。
+  - 值为`2`时，表示`每次提交事务时`将数据写入日志文件，`每隔1秒`将日志文件写入磁盘。该模式速度较快，也比0安全，只有在操作系统崩溃或者系统断电的情况下，上一秒钟所有事务数据才可能丢失。
+- `innodb_log_buffer_size`：这是 InnoDB 存储引擎的`事务日志所使用的缓冲区`。为了提高性能，也是先将信息写入 Innodb Log Buffer 中，当满足 innodb_flush_log_trx_commit 参数所设置的相应条件（或者日志缓冲区写满）之后，才会将日志写到文件（或者同步到磁盘）中。
+- `max_connections`：表示 允许连接到MySQL数据库的最大数量 ，默认值是 151 。如果状态变量connection_errors_max_connections 不为零，并且一直增长，则说明不断有连接请求因数据库连接数已达到允许最大值而失败，这是可以考虑增大max_connections 的值。在Linux 平台下，性能好的服务器，支持 500-1000 个连接不是难事，需要根据服务器性能进行评估设定。这个连接数 不是越大 越好 ，因为这些连接会浪费内存的资源。过多的连接可能会导致MySQL服务器僵死。
+- `back_log`：用于`控制MySQL监听TCP端口时设置的积压请求栈大小`。如果MySql的连接数达到max_connections时，新来的请求将会被存在堆栈中，以等待某一连接释放资源，该堆栈的数量即back_log，如果等待连接的数量超过back_log，将不被授予连接资源，将会报错。5.6.6 版本之前默认值为 50 ， 之后的版本默认为 50 + （max_connections / 5）， 对于Linux系统推荐设置为小于512的整数，但最大不超过900。如果需要数据库在较短的时间内处理大量连接请求， 可以考虑适当增大back_log 的值。
+- `thread_cache_size`：`线程池缓存线程数量的大小`，当客户端断开连接后将当前线程缓存起来，当在接到新的连接请求时快速响应无需创建新的线程 。这尤其对那些使用短连接的应用程序来说可以极大的提高创建连接的效率。那么为了提高性能可以增大该参数的值。默认为60，可以设置为120。
+- `wait_timeout`：指定`一个请求的最大连接时间`，对于4GB左右内存的服务器可以设置为5-10。 
+- `interactive_timeout`：表示服务器在关闭连接前等待行动的秒数。
 
 
 
@@ -3133,11 +3171,13 @@ InnoDB采用的机制是：先写日志(redo log),再写磁盘,只有日志写�
 刷盘策略:`redo log `不是直接写入磁盘的,`Innodb引擎会先写入redo log buffer` 之后再以一定的频率刷入到真正的`redo log file`中   
 InnoDB给出 `innodb_flush_log_at_trx_commit` 参数，该参数控制 commit提交事务时，如何将 `redo log buffer` 中的日志刷新到` redo log f`ile 中
 
-- 设置为`0`：表示每次事务提交时不进行刷盘操作。每隔1s写入pagecache
-- 设置为`1`：表示每次事务提交时都将进行同步，**刷盘**操作(默认值) 保证写入(持久化)
+- 设置为`0`：表示每次事务提交时不进行刷盘操作。每隔1s写入pagecache   
+- 设置为`1`：表示每次事务提交时都将进行同步，**刷盘**操作(默认值) 保证写入(持久化)   
 - 设置为`2`：表示每次事务提交时都只把 redo log buffer 内容写入page cache`文件系统缓存`，不进行同步。由os自己决定什么时候同步到磁盘文件,效率高
 
-> 区别: `0` 完全固定刷新频率1s1次可能丢失1s数据,`1`每次事务提交都会进行同步刷盘,保证事务执行完肯定持久化,`2`是0和1的中间态,只保证写入系统缓存,持久化操作由系统调配
+> 区别: `0` 完全固定刷新频率1s1次可能丢失1s数据,   
+> `1`每次事务提交都会进行同步刷盘,保证事务执行完肯定持久化,   
+> `2`是0和1的中间态,只保证写入系统缓存,持久化操作由系统调配
 
 #### REDO LOG Buffer过程
 

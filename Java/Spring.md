@@ -1210,7 +1210,8 @@ public class PersonProxy{ }
 - `propagation` **事务传播行为** 7种 默认为`Propagation.REQUIRED`
 > 多事务方法直接进行调用，这个过程中事务是如何进行管理的，如：有事务方法调用无事务方法
 > **前两个重要**
-> ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/spring事务.png)
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/spring事务.png)
 
 - isolation 事务隔离级别
 > 事务的隔离特性，多事务操作之间不会产生影响，不考虑隔离性会产生很多问题
