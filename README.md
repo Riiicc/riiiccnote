@@ -9,6 +9,7 @@
 [小林Coding](https://www.xiaolincoding.com/)    
 [阿秀的学习笔记](https://interviewguide.cn/)    
 [java-tutorial](https://github.com/dunwu/java-tutorial)    
+[皮蛋网全栈java](https://pdai.tech/)    
 
 # 日常
 
