@@ -2838,6 +2838,8 @@ EXPLAIN SELECT id,age FROM student WHERE NAME LIKE '%abc';
 ```sql
 # 联合索引(`zipcode`,`lastname`,`firstname`)
 
+# 没下推 就是先查lastname 再回表获取所有，再过滤address
+#有下推 就先查lastname 再过滤address 再回表
 EXPLAIN SELECT * FROM people
 WHERE zipcode='000001'
 # 应该失效,但是可以使用索引下推,在回表之前进行过滤
@@ -2853,7 +2855,9 @@ AND firstname LIKE '三%';
 
 设置索引下推是否开启,默认开启:   
 `SET optimizer_switch = 'index_condition_pushdown=on/off';`    
-`SET  @@optimizer_switch='index_condition_pushdown=on/off';` 
+`SET  @@optimizer_switch='index_condition_pushdown=on/off';`   
+
+
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/索引下推使用条件.png)
 

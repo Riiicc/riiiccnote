@@ -58,7 +58,7 @@ public class LinshiTest {
 ### 方法重载\重写
 
 重载:
-- 发生在同一个类中（或者父类和子类之间）
+- 发生在同一个类中
 - 方法名必须相同,参数类型,个数,顺序,返回值,修饰符 可以不同
 - Java 允许重载任何方法， 而不只是构造器方法
 
@@ -381,7 +381,7 @@ BigDecimal 常见方法
 
 
 # ⭐ 容器  
-![](https://gitee.com/riiicc/JavaCoreTech/raw/master/part9/photo/p914-1.png)
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/p914-1.png)
 
 ## 集合概览
  - `Collection` 接口

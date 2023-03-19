@@ -1,3 +1,5 @@
+redis整个笔记需要重新构建   
+
 # Redis   
 
 https://redis.io/commands/set/ 
@@ -697,6 +699,7 @@ cluster-node-timeout 15000 # 设置节点失联事件，超过该时间（ms）�
 
 # 参考
 > - [尚硅谷视频](https://www.bilibili.com/video/BV1Rv41177Af)  
+> - [尚硅谷视频Redis7](https://www.bilibili.com/video/BV13R4y1v7sP)  
 > - [Redis开发与运维]
 
 

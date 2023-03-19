@@ -371,34 +371,6 @@ int deleteIds(@Param("ids") String ids);
 </mapper>
 ```
 
-> 分步查询的优点:可以实现延迟加载,但是必须再核心配置文件中设置全局配置信息(settings标签)  
-> `lazyLoadingEnabled` :延迟加载的全局开关,当开启时,所有关联对象(分布查询的第二步,第三步...)都会延迟加载  
-> `aggressiveLazyLoading` :当开启时,任何方法的调用都会加载该对象的所有属性,否则每个属性会按需加载  
-> 此时就可以实现按需加载,获取的数据是什么,就只会执行响应的sql,此时可以通过 `association` 和 `collection`   
-> 中的 `fetchType` 属性设置当前的分布查询是否使用延迟加载,`fetchType="lazy" (延迟加载)|eager(立即加载)`  
-> **注: `fetchType` 属性 必须在开启全局延迟加载后才能生效** 
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mybatis3.png) 
-
-```xml
-  <settings>
-        <!-- 开启全局延迟加载-->
-        <setting name="lazyLoadingEnabled" value="true"/>
-    </settings>
-```
-
-或者
-
-```properties
-mybatis.configuration.lazy-loading-enabled=true
-#false 为按需加载
-mybatis.configuration.aggressive-lazy-loading=false
-
-```
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mybatis2.png)
-
-
 
 ###  解决一对多映射
 部门下的所有员工   
@@ -443,6 +415,34 @@ mybatis.configuration.aggressive-lazy-loading=false
         select * from t_emp where did = #{did};
     </select>
 ```
+
+
+**分步查询的优点**:可以实现延迟加载,但是必须再核心配置文件中设置全局配置信息(settings标签)  
+- `lazyLoadingEnabled` :延迟加载的全局开关,当开启时,所有关联对象(分布查询的第二步,第三步...)都会延迟加载  
+- `aggressiveLazyLoading` :当开启时,任何方法的调用都会加载该对象的所有属性,否则每个属性会按需加载  
+> 此时就可以实现按需加载,获取的数据是什么,就只会执行响应的sql,此时可以通过 `association` 和 `collection`中的 `fetchType` 属性设置当前分步查询是否使用延迟加载,`fetchType="lazy" (延迟加载)|eager(立即加载)`   
+> **注: `fetchType` 属性 必须在开启全局延迟加载后才能生效** 
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mybatis3.png) 
+
+```xml
+  <settings>
+        <!-- 开启全局延迟加载-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+    </settings>
+```
+
+或者
+
+```properties
+mybatis.configuration.lazy-loading-enabled=true
+#false 为按需加载
+mybatis.configuration.aggressive-lazy-loading=false
+
+```
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/mybatis2.png)
+
 
 
 ## Mybatis 动态SQL  

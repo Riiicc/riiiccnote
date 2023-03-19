@@ -1,5 +1,12 @@
+
+
+
 # Spring 全笔记
 > 关于Spring框架的所有笔记汇总整理  
+
+待办  
+- https://blog.csdn.net/m0_73687324/article/details/128255689 事务传播参考完善
+
 
 ---
 
@@ -659,7 +666,8 @@ public class MyBeanPost implements BeanPostProcessor {
 
 > 基于注解方式实现对象创建  
 - 第一步 引入依赖 （引入spring-aop jar包）
-- 第二步 开启组件扫描
+- 第二步 开启组件扫描  
+
 ```xml
 <!--开启组件扫描
  1 如果扫描多个包，多个包使用逗号隔开
@@ -669,7 +677,9 @@ public class MyBeanPost implements BeanPostProcessor {
 <context:component-scan base-package="com.atguigu,com.ra"></context:component-scan>
 
 ```
+
 - 第三步 创建类，在类上面添加创建对象注解
+
 ```java
 //在注解里面 value 属性值可以省略不写，
 //默认值是类名称，首字母小写
@@ -1150,7 +1160,9 @@ public class PersonProxy{ }
         <property name="dataSource" ref="dataSource"/>
     </bean>
 ```
-2. 引入tx名称空间
+
+2. 引入tx名称空间 
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"

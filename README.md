@@ -11,60 +11,67 @@
 [java-tutorial](https://github.com/dunwu/java-tutorial)    
 [皮蛋网全栈java](https://pdai.tech/)    
 
+
+# API
+[菜鸟教程JDK11文档](https://www.runoob.com/manual/jdk11api/index.html)
+
+# 博客
+没事儿看看 
+- [大佬1](https://draveness.me/)    
+  - GitHub地址 https://github.com/draveness
+
+
+# 面试相关内容
+- [面试网站](/日常/面试.md)
+- [尚硅谷面试](/日常/尚硅谷面试题.md)
+- [JavaGuide总结](/日常/JavaGuide总结.md)
+- [MySQL面试题](Java/Mysql面试题.md)  
+- [Spring面试](日常/Spring面试.md)  
+
 # 日常
 
-- [常用代码](/日常/常用代码.md)
-- [日常链接](/日常/日常链接.md)
-- [面试](/日常/面试.md)
+- [工具链接](/日常/日常链接.md)
 - [计划](/日常/计划.md)
-- [JavaGuide总结](/日常/JavaGuide总结.md)
-- [尚硅谷面试](/日常/尚硅谷面试题.md)
 - [工具网站](/日常/工具网站.md)
-- [🦄🦄🦄🦄🦄](/日常/脑洞.md)
+- [脑洞](/日常/脑洞.md)
 
 # Java
-
-## 实战 
 - [Java项目](Java/Java项目.md)
-- [最佳实践](Java/最佳实践.md)
-
-## Java虚拟机
+- [最佳实践总结](Java/最佳实践.md)
 - [Java虚拟机](Java/JVM虚拟机.md)
-
-
-## 多线程
+- [JVM性能监控](Java/JVM性能监控.md)
 - [Java多线程](Java/Java多线程.md)
 - [JUC开发](Java/JUC开发.md)
+- [Java8案例](Java/Java8案例.md)
+- [Java8实战笔记](Java/Java8实战.md)
 
-
-## Spring 全家桶
+# Spring 
 - [Spring实战4](Java/SpringInAction4.md)
 - [Spring](Java/Spring.md)
-- [Spring黑马](Java/SpringHM.md)
+- [Spring黑马源码](Java/SpringHM.md)
 - [Spring注解](Java/Spring注解.md)
 - [SpringBoot](Java/SpringBoot.md)
 - [SpringSecurity](Java/SpringSecurity.md)
 - [SpringCloud](java/SpringCloud.md)
 
-## MyBatis
+# MyBatis
 - [Mybatis](/Java/MyBatis.md)
 - [ ] Mybatis-Plus
 
-## Java8 
-
-- [Java8案例](Java/Java8案例.md)
-- [Java8实战](Java/Java8实战.md)
-
-## 中间件 
+# 其他框架 
 - [Netty](Java/Netty.md)
-
 - [ ] Nacos
 
-## 数据库
+# 数据库
 - [Redis](Java/Redis.md)
 - [MySQL](Java/MySQL.md)  
 - [MySQL调优笔记](Java/MySQL调优笔记.md)  
 
+# 计算机基础
+
+- [数据结构与算法](/计算机基础/数据结构与算法.md)
+- [Java设计模式](/计算机基础/Java设计模式.md)
+- [常用单词读法](/计算机基础/常用单词.md)
 
 # Linux 
 * [Nginx](/Linux/Nginx)  
@@ -72,9 +79,8 @@
 * [VIM](/Linux/VIM)  
 
 
-## Docker
+# Docker
 * [Docker](/Linux/Docker)
-
 
 
 ## Git
@@ -95,12 +101,6 @@
 - [Keepalived配置](/服务器配置/Keepalived配置.md)
 
 
-# 计算机基础
-
-- [数据结构与算法](/计算机基础/数据结构与算法.md)
-- [Java设计模式](/计算机基础/Java设计模式.md)
-- [常用单词读法](/计算机基础/常用单词.md)
-
 # 前端
 - [前端参考](/前端/前端参考.md)
 - [小程序](/前端/小程序.md)
@@ -120,9 +120,9 @@
 
 
 # Markdown
-- [Markdown](/Markdown/Markdown.md)
+- [Markdown教程](/Markdown/Markdown教程.md)
 
 
 # Python 
 - [Python](/Python/Python.md)
-
+- [ ] MircoPython

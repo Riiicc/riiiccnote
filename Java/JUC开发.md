@@ -425,7 +425,7 @@ public ReentrantLock(boolean fair) {
 - `jps` 
 - `jstack` jvm自带堆栈跟踪工具 
 
-> `jsp -l` 然后使用 `jstack pid` 查看
+> `jps -l` 然后使用 `jstack pid` 查看
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/juc3.png)
 
