@@ -21,13 +21,6 @@
   - GitHub地址 https://github.com/draveness
 
 
-# 面试相关内容
-- [面试网站](/日常/面试.md)
-- [尚硅谷面试](/日常/尚硅谷面试题.md)
-- [JavaGuide总结](/日常/JavaGuide总结.md)
-- [MySQL面试题](Java/Mysql面试题.md)  
-- [Spring面试](日常/Spring面试.md)  
-
 # 日常
 
 - [工具链接](/日常/日常链接.md)
@@ -83,7 +76,7 @@
 * [Docker](/Linux/Docker)
 
 
-## Git
+# Git
 * [Git](/Linux/Git)
 * [Git速查](/Linux/Git速查)
 
@@ -126,3 +119,12 @@
 # Python 
 - [Python](/Python/Python.md)
 - [ ] MircoPython
+
+
+
+# 面试相关内容
+- [面试网站](/日常/面试.md)
+- [尚硅谷面试](/日常/尚硅谷面试题.md)
+- [JavaGuide总结](/日常/JavaGuide总结.md)
+- [MySQL面试题](Java/Mysql面试题.md)  
+- [Spring面试](日常/Spring面试.md)  
