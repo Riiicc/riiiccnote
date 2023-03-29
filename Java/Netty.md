@@ -33,8 +33,9 @@
 
 
 ### 代码示例
-> 使用BIO 模型编写一个服务器端,监听 `6666` 端口    
-> 客户端通过 telnet 访问  
+- 服务器端启动一个`ServerSocket`
+- 使用BIO 模型编写一个服务器端,监听 `6666` 端口    
+- 客户端通过命令 `telnet localhost 6666` 访问  
 
 ```java
 public class BioDemo {
@@ -105,10 +106,11 @@ public class BioDemo {
 
 
 ### NIO BIO 对比
-- BIO 以流(Stream)的方式处理数据 ,NIO以块的方式处理数据,效率更高
+- BIO 以流(Stream)的方式处理数据 ,NIO以块`Buffer`的方式处理数据,效率更高
 - BIO是阻塞的,NIO是非阻塞的
 - BIO基于字符和字节流进行操作
 - NIO 基于 Channel 和Buffer 进行操作, Selector 用于监听多个通道的事件,因此使用单个线程就可以监听多个客户端通道  
+  - 通俗理解：若有100个请求过来，根据实际情况分配10个或20个线程去处理，一个线程对应一个selector 处理多个请求，而不是像BIO那样分配100个线程处理
 
 ### NIO三大核心
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/netty1.png) 
@@ -119,6 +121,7 @@ public class BioDemo {
 - 程序切换到那个 `channel` 是由事件 `Event` 决定的
 - `Selector` 会根据不同的事件 在各个通道上切换 
 - `Buffer` 是一个内存块,底层是一个数组
+- 数据的读取写入都是通过`Buffer`
 - `Buffer` 可以读取也可以写入,通过`flip` 方法切换
 - `channel` 是双向的,可以返回底层操作系统的情况  
 
@@ -134,8 +137,8 @@ public class BufferDemo {
         for (int i = 0; i < allocate.capacity(); i++) {
             allocate.put(i);
         }
-        //转换
-        allocate.flip();
+        //转换 读写切换 写模式切换为读模式
+        allocate.flip(); //重置position
         while (allocate.hasRemaining()){
             //每次get后指针后移获取下一个值
             System.out.println(allocate.get());
@@ -161,7 +164,7 @@ public class BufferDemo {
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/netty2.png)
 
-> 对于java基本类型(Boolean) 除外,都有一个对应的Buffer类型,最常用的是`ByteBuffer`   
+> 对于java基本类型(Boolean 除外),都有一个对应的Buffer类型,最常用的是`ByteBuffer`   
 
 
 ByteBuffer 常用方法    
@@ -171,12 +174,15 @@ ByteBuffer 常用方法
 ## ⭐ Channel 通道（核心二）
 > NIO 的通道类似于流,但有如下区别   
 
-- 通道可以同时进行读和写(双向),而流只能读或者写
-- 通道可以实现异步读写数据
-- 通道可以从缓冲区读数据,也可以写数据到缓冲区  
+- 通道channel可以同时进行读和写(双向),而流只能读或者写
+- 通道channel可以实现异步读写数据
+- 通道channel可以从缓冲区读数据,也可以写数据到缓冲区  
 
 
-> 常用的 Channel 子类有 : `FileChannel`(文件读写) `DatagramChannel`(UDP读写) `ServerSocketChannel`  `SocketChannel`(TCP读写)
+常用的 Channel 子类有 :     
+- `FileChannel`(文件读写)   
+- `DatagramChannel`(UDP读写)    
+- `ServerSocketChannel`  `SocketChannel`(TCP读写)
 
 ### Channel 基本操作 
 
@@ -1551,13 +1557,9 @@ message Worker{
 > 以入站为例: 对于每个从入站 `Channel` 读取的消息,会调用 `channelRead` 随后他将由解码器所提供的 `decode()` 方法进行解码,   
 > 并将已经解码的字节转发给 `ChannelPipeline` 中的下一个 `ChannelInboundHandler`   
 
-举例 `io.netty.handler.codec.string.StringDecoder`  关系图   
+举例 `io.netty.handler.codec.string.StringDecoder` 和 `io.netty.handler.codec.string.StringEncoder`  关系图   
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/StringDecoder.png)
-
-举例 `io.netty.handler.codec.string.StringEncoder`  关系图   
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/StringEncoder.png)
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/StringEncoder继承关系图.png)
 
 #### 解码器示例 ReplayingDecoder
 - `public abstract class ReplayingDecoder<S> extends ByteToMessageDecoder `
@@ -1739,15 +1741,16 @@ public class MessageDecoder extends ReplayingDecoder<Void> {
 
 # 期间疑问汇总
 
- 1. `ctx.writeAndFlush()` `ctx.channel().writeAndFlush()` 区别
- https://blog.csdn.net/fishseeker/article/details/78447684 
-
-~~ 2. `ChannelInboundHandlerAdapter`  `SimpleChannelInboundHandler` 区别 出站 入站   ~~
-
-3. ChannelInitializer 理解 流程   
+1. `ctx.writeAndFlush()` `ctx.channel().writeAndFlush()` 区别 https://blog.csdn.net/fishseeker/article/details/78447684   
+2. `ChannelInboundHandlerAdapter`  `SimpleChannelInboundHandler` 区别 出站 入站
+3. `ChannelInitializer` 理解 流程   
 4. `channelFuture.channel().closeFuture().sync(); channelFuture.channel().close().sync()`
-5. ChannelInboundHandlerAdapter  SimpleChannelInboundHandler  ChannelInitializer 区别 和核心方法
+5. `ChannelInboundHandlerAdapter`  `SimpleChannelInboundHandler`  `ChannelInitializer` 区别 和核心方法
+
+
+
 # 参考
 > - [尚硅谷视频](https://www.bilibili.com/video/BV1DJ411m7NR)  
 > - [博客](https://www.jianshu.com/p/6681bfa36c4f)
 > - [一张图搞清楚什么是入站和出站](https://www.jianshu.com/p/01b9b8cff943)
+> - [粘包拆包参考](https://www.cnblogs.com/rickiyang/p/12904552.html)
