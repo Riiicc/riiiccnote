@@ -2817,6 +2817,7 @@ private void unparkSuccessor(Node node) {
 
 # 工具 
 ## 线程池
+线程池是为了避免线程频繁的创建和销毁带来的性能损耗，而建立的一种池化技术 
 ThreadPool 线程池维护着多个线程，是一种线程使用模式
 
 特点：
@@ -2825,12 +2826,11 @@ ThreadPool 线程池维护着多个线程，是一种线程使用模式
 - 可以对线程做统一管理
 
 ### 构建线程池
-- `Executors.newFixedThreadPool(int)` 固定数量的线程
-- `Executors.newSingleThreadExecutor()` 只有一个线程,顺序执行
-- `Executors.newCachedThreadPool()` 可扩容的线程池,空闲线程默认保留60s
-
+- `Executors.newFixedThreadPool(int)` 固定数量的线程，int是核心和最大线程数(二者都采用int的值),队列长度是`Integer.MAX_VALUE`
+- `Executors.newSingleThreadExecutor()` 只有一个线程,顺序执行，核心线程是1，最大线程数是1,队列长度是`Integer.MAX_VALUE`
+- `Executors.newCachedThreadPool()` 可扩容的线程池,空闲线程默认保留60s，最大线程数默认为`Integer.MAX_VALUE`  
+- `Executors.newScheduledThreadPool(int)` 创建一个定长线程池，支持定时及周期性任务执行，int就是核心线程数，最大线程数默认为`Integer.MAX_VALUE`
 **上述线程池创建都是用`ThreadPoolExecutor()方法` 搭配不同参数进行创建**  
-- `Executors.newScheduledThreadPool(int)` 创建一个定长线程池，支持定时及周期性任务执行
 
 ```java
 public class ThreadPoolDemo1 {
@@ -2873,9 +2873,10 @@ public class ThreadPoolDemo1 {
 五个必要参数:
 - `corePoolSize` 线程池中**核心线程**数最大值
     > 核心线程：线程池中有两类线程，核心线程和非核心线程。核心线程默认情况下会一直存在于线程池中，即使这个核心线程什么都不干（铁饭碗），而非核心线程如果长时间的闲置，就会被销毁（临时工）
-- `maximumPoolSize` 该线程池中**线程总数**最大值 
+- `maximumPoolSize` 该线程池中**线程总数**最大值，必须大于等于`corePoolSize`
     > 该值等于核心线程数量 + 非核心线程数量。
-- `keepAliveTime`  `unit` 非核心线程闲置超时时长 和 时间单位(TimeUnit是一个枚举类型)
+- `keepAliveTime`非核心线程闲置超时时长,核心线程无超时时长
+- `unit` 时间单位(TimeUnit是一个枚举类型)
 - `BlockingQueue<Runnable> workQueue` 阻塞队列，维护着等待执行的Runnable任务对象
 
 下面是两个非必要参数
@@ -2885,7 +2886,7 @@ public class ThreadPoolDemo1 {
     > 线程数量大于最大线程数就会采用拒绝处理策略
 
 ### 线程池底层工作流程  
-- 创建线程池,线程并没有创建
+- 创建线程池,线程并没有创建,而是在有任务提交时才创建，若要提前创建核心线程，可以调用方法`prestartCoreAllThreads`
 - 执行线程池的`execute()` 方法后线程才会创建 
 - 先到到核心线程,核心线程满载后进入阻塞队列,阻塞队列满了后,创建新线程进行处理,线程总数到达最大线程数时,后续请求会直接执行拒绝策略
 
@@ -2900,9 +2901,20 @@ public class ThreadPoolDemo1 {
 
 ### 自定义线程池
 实际应用中,不建议使用 `Executors` 创建线程池,可能会造成OOM,而是通过 `ThreadPoolExecutor` 方式自定义线程池参数  
-- FixedThreadPool 和 SingleThreadPool： 允许的请求队列长度为 `Integer.MAX_VALUE`，可能会堆积大量的请求，从而导致 OOM。
-- CachedThreadPool： 允许的创建线程数量为 `Integer.MAX_VALUE`，可能会创建大量的线程，从而导致 OOM
+- `FixedThreadPool` 和 `SingleThreadPool`： 允许的请求队列长度为 `Integer.MAX_VALUE`，可能会堆积大量的请求，从而导致 OOM。
+- `CachedThreadPool` 和`ScheduledThreadPool`： 允许的创建线程数量为 `Integer.MAX_VALUE`，可能会创建大量的线程，从而导致 OOM
 
+**自定义线程池参考规则**   
+计算(CPU)密集型：一般设置为CPU+1 或者CPU*2
+IO密集型：CPU /(1-阻塞系数)，阻塞系数一般为0.8-0.9之间，双核CPU设置为10-20
+
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/线程池大小设置参考.png)
+
+上图出自《Java并发编程实战》第八章  
+
+如果我期望目标利用率为90%（多核90），那么需要的线程数为：   
+`CPU核心数12 * 利用率0.9 * (1 + 50(sleep时间)/50(循环50_000_000耗时)) ≈ 22`
 
 ```java
 public class ThreadPoolDemo2 {

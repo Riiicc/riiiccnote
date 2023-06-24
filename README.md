@@ -12,6 +12,12 @@
 [皮蛋网全栈java](https://pdai.tech/)    
 
 
+# AI
+吴恩达Prompt Engineering
+https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction   
+网易账号登录   
+
+
 # API
 [菜鸟教程JDK11文档](https://www.runoob.com/manual/jdk11api/index.html)
 
@@ -72,6 +78,8 @@
 * [linux快速命令](/Linux/linux快速命令)
 * [VIM](/Linux/VIM)  
 
+# Freeswitch  
+* [Freeswitch](/AI/Freeswitch)  
 
 # Docker
 * [Docker](/Linux/Docker)

@@ -1,18 +1,84 @@
-redis整个笔记需要重新构建   
-
 # Redis   
+[官方文档](https://redis.io/commands/set/)
 
-https://redis.io/commands/set/ 
+# Redis 7 新特性 
+- Redis Function(替换Lua脚本)
+- Client-eviction(优化内存占用)
+- Multi-part AOF (AOF优化性能(多AOF文件)，使用AOF持久化能获得更高性能)
+- ACL V2(权限管理优化)
+- 新增命令()
+- listpack 替代 ziplist
+- 底层性能提升
 
-## 介绍
+# 安装 
+Redis 建议安装于Linux主机中，从而发挥最大性能(多路复用中的epoll函数)
 
-> redis 默认16个数据库,从 0 - 15 号,默认使用0号  
+## Linux安装  
 
-> 使用命令 `select 1` 来切换到1号数据库  
+```shell
+#返回是多少就是几位 
+getconf LONG_BIT
 
-> 单线程 + 多路IO复用    
+#查看版本
+gcc -v                 
 
-## 基本操作  
+#安装c++库环境
+yum -y install gcc-c++        
+
+# 目录下解压
+tar -zxvf redis7.0.9.tar.gz      
+
+mkdir /usr/local/redis
+
+#进入目录
+cd redis7.0.9.tar.gz   
+
+#在redis7.0.9目录下执行 指定安装文件夹
+make && make PREFIX=/usr/local/redis install
+
+#复制conf文件
+cp /usr/local/redis-7.0.10/redis.conf /usr/local/redis/bin/ 
+            
+#默认安装的位置查看
+cd /usr/local/redis/bin 
+```
+
+**redis.conf配置文件**，改完后确保生效，记得重启，记得重启    
+- 默认`daemonize no` 改为 `daemonize yes`
+- 默认`protected-mode yes` 改为 `protected-mode no`
+- 默认`bind 127.0.0.1` 改为 直接注释掉(默认bind 127.0.0.1只能本机访问)或改成本机IP地址，否则影响远程IP连接
+- 添加redis密码 改为 `requirepass` 你自己设置的密码
+
+```shell
+#启动 
+./redis-server ./redis.conf
+
+# 启动后连接
+./redis-cli -a 123456 -p 6379  
+
+#单实例关闭
+./redis-cli -a 123456 shutdown
+
+#多实例关闭,指定端口号关闭
+./redis-cli -p 6379 shutdown
+
+```
+
+**bin目录说明**  
+
+```shell
+[root@centos9 bin]# pwd
+/usr/local/redis/bin
+[root@centos9 bin]# ll
+总用量 21636
+-rwxr-xr-x. 1 root root  5197800 4月   6 21:25 redis-benchmark
+lrwxrwxrwx. 1 root root       12 4月   6 21:25 redis-check-aof -> redis-server
+lrwxrwxrwx. 1 root root       12 4月   6 21:25 redis-check-rdb -> redis-server
+-rwxr-xr-x. 1 root root  5411136 4月   6 21:25 redis-cli
+-rw-rw-r--. 1 root root   106545 3月  21 01:16 redis.conf
+lrwxrwxrwx. 1 root root       12 4月   6 21:25 redis-sentinel -> redis-server
+-rwxr-xr-x. 1 root root 11429280 4月   6 21:25 redis-server
+```
 
 
 可执行文件 | 作用 |
@@ -25,17 +91,24 @@ https://redis.io/commands/set/
  `redis-sentinel`| 启动redis哨兵 |  
 
 
-> `redis-server` 加上要修改的配置,可以进行临时配置,而不用修改配置文件       
-> `redis-server --configKey1 --configKey2 --configKey3`   
-> 如: `redis-server --port 6308 --logfile ./files --daemonize yes`
+## Docker 安装
 
 
-> `redis-cli shutdown` 停止Redis服务  
-> 除了可以通过shutdown命令关闭Redis服务以外，还可以通过kill进程号的方式关闭掉Redis，但是不要粗暴地使用kill-9强制杀死Redis服务，  
-> 不但不会做持久化操作，还会造成缓冲区等资源不能被优雅关闭，极端情况会造成AOF和复制丢失数据的情况
-> `redis-cli shutdown nosave|save` 选择是否持久化数据   
 
-## 为什么这么快? 
+
+# 基本操作  
+`redis-server` 加上要修改的配置,可以进行临时配置,而不用修改配置文件         
+`redis-server --configKey1 --configKey2 --configKey3`     
+如: `redis-server --port 6308 --logfile ./files --daemonize yes`  
+
+`redis-cli shutdown` 停止Redis服务    
+除了可以通过shutdown命令关闭Redis服务以外，还可以通过kill进程号的方式关闭掉Redis，但是不要粗暴地使用kill-9强制杀死Redis服务，    
+不但不会做持久化操作，还会造成缓冲区等资源不能被优雅关闭，极端情况会造成AOF和复制丢失数据的情况   
+`redis-cli shutdown nosave|save` 选择是否持久化数据       
+
+
+
+# 为什么这么快? 
 - 纯内存访问，Redis将所有数据放在内存中，内存的响应时长大约为100纳秒，这是Redis达到每秒万级别访问的重要基础。
 - 非阻塞I/O，Redis使用 `epoll` 作为I/O多路复用技术的实现，再加上Redis自身的事件处理模型将epoll中的连接、读写、关闭都转换为事件，不在网络I/O上浪费过多的时间  
 - 单线程避免了线程切换和`竞态`产生的消耗   
@@ -45,55 +118,74 @@ https://redis.io/commands/set/
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis多路复用.png)
 
-## 键 key
+# 键 key
 
 - `keys *` 查看当前库所有key
 - `exists key` 判断key是否存在
 - `del key` 删除
-- `unlink key` 非阻塞删除  
-- `expire key 10` 过期  -1 永不过期, -2 已过期失效 
+- `unlink key` 非阻塞删除，删除大key使用可以快速返回  
+- `expire key 10` 过期(秒)  -1 永不过期, -2 已过期失效 
+- `type key` 查看你的key是什么类型
+- `ttl key`         // 查看还有多少秒过期 -1表示永不过期 -2 表示已过期
+- `move key dbindex [0-15]`将当前数据库的key移动到指定的数据库中  redis默认是有16个数据库的
+- `select dbindex [0-15]` 切换数据库[0-15]，默认为0
+- `dbsize` 查看当前数据库key的数量
+- `flushdb` 清空当前库
+- `flushall`清空16个数据库 慎用
 
-## 值 五+三 种类型  
+# 十种类型  
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis5种数据结构.png)
+## String 字符串   
 
-### String字符串  
-> String 类型是二进制安全的。意味着 Redis 的 string 可以包含任何数据。比如 jpg 图片或者序列化的对象。  
-> String 类型是 Redis 最基本的数据类型，一个 Redis 中字符串 value 最多可以是 512M。   
-> String 的数据结构为简单动态字符串,内部结构类似 `ArrayList`   
-> 扩容机制,字符串长度小于1M 时,扩容策略时翻倍当前空间,超过1M时每次扩容1M空间   
+[官方文档](https://redis.io/commands/set/)
 
-- 总体示例: `set key value ex(秒) px(毫秒) (nx|xx)`
-  - nx,键不存在才能赋值
-  - xx,键必须存在才能赋值
-  - ex|px 都是过期时间,单位不同  
-- `set <key><value>`：添加键值对
+String 类型是二进制安全的。意味着 Redis 的 string 可以包含任何数据。比如 `jpg 图片`或者`序列化的对象`。   
+String 类型是 Redis 最基本的数据类型，一个 Redis 中字符串 value 最多可以是 `512M`。   
+String 的数据结构为简单动态字符串,内部结构类似 `ArrayList`   
+扩容机制,字符串长度小于1M 时,扩容策略时翻倍当前空间,超过1M时每次扩容1M空间   
+
+- `SET key value [NX | XX] [GET] [EX seconds | PX milliseconds |EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]`
+  - `NX | XX`不存在才能赋值|键必须存在才能赋值
+  - `EX`|`PX` 都是过期时间,单位不同 秒 | 毫秒
+  - `GET`返回设置的值
+  - `EXAT|PXAT` 秒级的时间戳(相当于毫秒级的时间戳/1000)|毫秒级的时间戳  
+  - `KEEPTTL` 重新赋值`set key value`会将其已经设置过的过期时间信息清除(变为永不过期),使用`KEEPTTL` 选项以继续原过期时间
+  - `SET key value EX 20`设置值20秒过期
+  - `SET key value exat 1669298229 ` 到指定时间过期
+
+- `set <key> <value>`：添加键值对
 - `get <key>`：查询对应键值
+- `set key value get` 返回并设置值  
 - `append <key><value>`：将给定的 <value> 追加到原值的末尾
 - `strlen <key>`：获得值的长度
-- ⭐`setnx <key><value>`：只有在 key 不存在时，设置 key 的值
 - `incr <key>`：将 key 中储存的数字值增 1，只能对数字值操作，如果为空，新增值为 1（**具有原子性**）
 - `decr <key>`：将 key 中储存的数字值减 1，只能对数字值操作，如果为空，新增值为 -1
 - `incrby/decrby <key><步长>`：将 key 中储存的数字值增减。自定义步长
-- `mset <key1><value1><key2><value2> `：同时设置一个或多个 key-value 对
-- `mget <key1><key2><key3>...`：同时获取一个或多个 value
-- `msetnx <key1><value1><key2><value2>...` ：同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+
+- `mset <key1><value1> <key2><value2> `：同时设置一个或多个 key-value 对
+- `mget <key1> <key2> <key3>...`：同时获取一个或多个 value
+- `msetnx <key1><value1> <key2><value2>...` ：同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+
 - `getrange <key><起始位置><结束位置>`：获得值的范围 获取值的截断值  
 - `setrange <key><起始位置><value>`：用 <value> 覆写 <key> 所储存的字符串值
+
+- ⭐`setnx <key><value>`：只有在 key 不存在时，设置 key 的值
 - ⭐`setex <key><过期时间><value>`：设置键值的同时，设置过期时间，单位秒。
+
+
 - `getset <key><value>`：以新换旧，设置了新值同时获得旧值。  
 
-> 原子性,redis 操作不会被打断具有原子性,Redis 单命令的原子性 得益于Redis 的单线程   
+原子性,redis 操作不会被打断具有原子性,Redis 单命令的原子性 得益于Redis 的单线程   
 
-### Hash哈希
+## Hash哈希
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redishash.png)
 
-> Redis hash 是一个键值对集合。
-> Redis hash 是一个 String 类型的 field 和 value 的映射表，hash 特别适合用于存储对象。 
-> 类似java中的 Map, Json 格式 (参考)   
-> 数据结构: field-value 长度较短(`hash-max-ziplist-value` 默认 64字节)且个数较少(`hash-max-ziplist-entries` 默认 512个)时,使用ziplist 压缩列表 ,否则使用hashtable 哈希表    
-> 注意hashtable 会占用更多内存, 所以要尽量保证
+- Redis hash 是一个键值对集合。
+- Redis hash 是一个 String 类型的 field 和 value 的映射表，hash 特别适合用于存储对象。 
+- 类似java中的 Map, Json 格式 (参考) `Map<String,Map<Object,Object>>`  
+- 数据结构: field-value 长度较短(`hash-max-ziplist-value` 默认 64字节)且个数较少(`hash-max-ziplist-entries` 默认 512个)时,使用ziplist 压缩列表 ,否则使用hashtable 哈希表    
+- 注意hashtable 会占用更多内存, 所以要尽量保证
 
 - `hset <key> <field> <value>`：给 <key> 集合中的 <field> 键赋值 <value>
 - `hget <key1> <field>`：从 <key1> 集合 <field> 取出 value
@@ -107,35 +199,37 @@ https://redis.io/commands/set/
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redishash.png)
 
 
-### List列表  
-> 单键多值 
-> 列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素到列表的头部（左边）或者尾部（右边）。   
-> 它的底层实际是个双向链表，**对两端的操作性能很高**，通过**索引下标的操作中间的节点性能会较差**。  
+## List列表  
+- 单键多值 
+-  列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素到列表的头部（左边）或者尾部（右边）。   
+-  它的底层实际是个**双向链表**，**对两端的操作性能很高**，通过**索引下标的操作中间的节点性能会较差**。  
 
-- `lpush/rpush <key><value1><value2><value3> ....`： 从左边/右边插入一个或多个值。
-- lpush 
+- `lpush/rpush <key> <value1> <value2> <value3> ....`： 从左边/右边插入一个或多个值。
+- lpush `lpush k1 v1 v2 v3`
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redislistexp.png)
 
-- rpush
+- rpush `rpush k2 v1 v2 v3`
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redislistexprpush.png)
 
 - `lpop/rpop <key>`：从左边/右边吐出一个值。消耗值,**调用完该值即会移除,取完所有值,键就消失**。
-- `rpoplpush <key1><key2>`：从 <key1> 列表右边吐出一个值，插到 <key2> 列表左边。
+- `rpoplpush <key1><key2>`：从 `<key1>` 列表右边吐出一个值，插到 `<key2>` 列表左边。
+
 - `lrange <key><start><stop>`：按照索引下标获得元素（从左到右）
 - `lindex <key><index>`：按照索引下标获得元素（从左到右）
+
 - `llen <key>`：获得列表长度
 - `linsert <key> before/after <value><newvalue>`：在 <value> 的前面/后面插入 <newvalue> 插入值
 - `lrem <key><n><value>`：从左边删除 n 个 value (n>0 从左到右) (n<0 从右到左) (n=0 全部删除)
+- `ltrim key startind endind` 截取list 并讲截取的结果赋值给key 
 - `lset<key><index><value>`：将列表 key 下标为 index 的值替换成 value
 - `blpop/brpop key timeout` 等待指定时间返回,如果timeout是0会一直阻塞  
 
 
-> List 的数据结构为快速链表 quickList。  
-> 首先在列表元素较少的情况下会使用一块连续的内存存储，这个结构是 ziplist，也即是压缩列表。   
-> 当数据量比较多的时候(元素个数超过512个)才会改成 quicklist(多个ziplist 使用双向指针结合起来)。  
-
+List 的数据结构为快速链表 `quickList`。   
+首先在列表元素较少的情况下会使用一块连续的内存存储，这个结构是 `ziplist`，也即是压缩列表。   
+当数据量比较多的时候(元素个数超过512个)才会改成 `quicklist`(多个ziplist 使用双向指针结合起来)。  
 
 - 使用场景 
   - 消息队列 `lpush+brpop` 
@@ -143,7 +237,7 @@ https://redis.io/commands/set/
   - 队列 `lpush+rpop` 
 
 
-### Set集合  
+## Set集合  
 > Set 对外提供的功能与 List 类似列表的功能，特殊之处在于 Set 是可以自动排重的,无序的   
 > 当需要存储一个列表数据，又不希望出现重复数据时，Set 是一个很好的选择，并且 Set 提供了判断某个成员是否在一个 Set 集合内的重要接口，这个也是 List 所不能提供的  
 > Set 数据结构是 dict 字典,字典使用哈希表实现的   
@@ -163,12 +257,12 @@ https://redis.io/commands/set/
 
 
 
-### Zset  
+## ZSet(Sorted Set)  
 
-> Redis 有序集合 zset 与普通集合 set 非常相似，是一个没有**重复元素**的字符串集合。   
-> 不同之处是有序集合的每个成员都关联了一个评分（score）,这个评分（score）被用来按照从**最低分到最高分的方式排序集合中的成员**。集合的成员是唯一的，但是评分可以是重复的。    
-> 因为元素是有序的，所以可以很快的根据评分（score）或者次序（position）来获取一个范围的元素。   
-> 访问有序集合的中间元素也是非常快的，因此能够使用有序集合作为一个没有重复成员的智能列表。   
+Redis 有序集合 zset 与普通集合 set 非常相似，是一个没有**重复元素**的字符串集合。   
+不同之处是有序集合的每个成员都关联了一个double类型的评分`score`,这个评分`score`被用来按照从**最低分到最高分的方式排序集合中的成员**。集合的成员是唯一的，但是评分可以是重复的。    
+因为元素是有序的，所以可以很快的根据评分`score`或者次序`position`来获取一个范围的元素。   
+访问有序集合的中间元素也是非常快的，因此能够使用有序集合作为一个没有重复成员的智能列表。   
 
 > `zadd topn 200 java 400 c++ 400 mysql 500 php` 向数据库中添加 四条数据    
 > 数据会自动根据score 有小到大排序   
@@ -185,14 +279,14 @@ https://redis.io/commands/set/
 - `zrank <key><value>`：返回该值在集合中的排名，从 0 开始。
 
 
-> SortedSet（zset）是 Redis 提供的一个非常特别的数据结构，一方面它等价于 Java 的数据结构 `Map<String, Double>`，可以给每一个元素 value 赋予一个权重 score，另一方面它又类似于 TreeSet，内部的元素会按照权重 score 进行排序，可以得到每个元素的名次，还可以通过 score 的范围来获取元素的列表。    
-> zset 底层使用了两个数据结构    
-> hash，hash 的作用就是关联元素 value 和权重 score，保障元素 value 的唯一性，可以通过元素 value 找到相应的 score 值    
-> 跳跃表，跳跃表的目的在于给元素 value 排序，根据 score 的范围获取元素列表   
+SortedSet`zset`是 Redis 提供的一个非常特别的数据结构，一方面它等价于 Java 的数据结构 `Map<String, Double>`，可以给每一个元素 value 赋予一个权重 score，另一方面它又类似于 TreeSet，内部的元素会按照权重 score 进行排序，可以得到每个元素的名次，还可以通过 score 的范围来获取元素的列表。    
+zset 底层使用了两个数据结构     
+hash，hash 的作用就是关联元素 value 和权重 score，保障元素 value 的唯一性，可以通过元素 value 找到相应的 score 值    
+跳跃表，跳跃表的目的在于给元素 value 排序，根据 score 的范围获取元素列表   
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/跳跃表示例.png)  
  
-### Bitmaps  
+## Bitmaps 位图  
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis-bitmap.png)
 
 > 合理使用操作位能有效提高内存使用率      
@@ -209,20 +303,28 @@ https://redis.io/commands/set/
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/bitmaps对比set.png)
 
+### 用途
+- 用户是否登录过，在线状态
+- 打卡，签到
 
-### HyperLogLog  
 
-> 基数,简单理解为自动去重数据集    
-> 比如,数据集{1,2,3,4,5,4,3},那么这个数据集的基数集为 {1,2,3,4,5}   
+## HyperLogLog 基数统计  
 
-> Redis HyperLogLog 是用来做基数统计的算法,HyperLogLog 的优点是,在输入元素的数量或者体积非常大时,计算基数所需的空间很小
+基数,简单理解为自动去重数据集    
+比如,数据集{1,2,3,4,5,4,3},那么这个数据集的基数集为 {1,2,3,4,5} 在HyperLogLog中表现为5   
+
+Redis HyperLogLog 是用来做**基数统计的算法**,HyperLogLog 的优点是,在输入元素的数量或者体积非常大时,计算基数所需的空间很小
 
 - `pfadd key element...` 
 - `pfcount key` 返回基数集长度
-- `pfmerge targetkey sourcekey ...` 合并key
+- `pfmerge targetkey sourcekey ...` 合并key将 targetkey 和 sourcekey(可以有多个)合并去重放入targetkey中
 
-### Geospatial  
-> Geospatinal 地理信息类型,元素的2维坐标,经纬度,redis基于该类型,提供了经纬度设置,查询,范围查询,距离查询,经纬度hash等操作 
+**HyperLogLog不会存储元素本身，只会根据输入元素计算基数，无法获取在其中的各元素值**
+
+
+
+## Geospatial 地理空间 
+`Geospatinal`地理信息类型,元素的2维坐标,经纬度,redis基于该类型,提供了经纬度设置,查询,范围查询,距离查询,经纬度hash等操作 
 
 - `geoadd <key> <longitude> <latitude> <memnber> ` 添加地理位置 经度纬度名称
 
@@ -230,6 +332,8 @@ https://redis.io/commands/set/
 geoadd china:city 121.47 31.23 shanghai
 geoadd china:city 106.50 29.53 chongqing 114.05 22.52 shenzhen 116.38 39.90 beijing
 ```
+
+**key对应的值类型是zset类型**
 
 - `geodist key member1 member2 [m|km|ft|mi]` 获取两个位置之间的**直线距离** 米|千米|英尺|英里    
 
@@ -241,141 +345,71 @@ geodist china:city beijing shanghai km
 
 ![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redisgeoradius.png)
 
-## 配置文件详解   
+- `geohash`返回坐标的hash表示，便于使用   
 
-### 单位设置方式  
-
-```conf
-# Note on units: when memory size is needed, it is possible to specify
-# it in the usual form of 1k 5GB 4M and so forth:
-#
-# 1k => 1000 bytes
-# 1kb => 1024 bytes
-# 1m => 1000000 bytes
-# 1mb => 1024*1024 bytes
-# 1g => 1000000000 bytes
-# 1gb => 1024*1024*1024 bytes
-#
-# units are case insensitive so 1GB 1Gb 1gB are all the same.
+```shell
+127.0.0.1:6379> geohash china:city shanghai shenzhen beijing
+1) "wtw3sj5zbj0"
+2) "ws10578st80"
+3) "wx4fbr966e0"
 ```
 
-### 文件包含 配置分离
+- `georadiusbymember`
 
-```conf
-# include /path/to/local.conf
-# include /path/to/other.conf
+```shell
+127.0.0.1:6379> georadiusbymember china:city shanghai 100 km
+1) "shanghai"
+127.0.0.1:6379> georadiusbymember china:city shanghai 1000 km
+1) "shanghai"
+127.0.0.1:6379> georadiusbymember china:city shanghai 10000 km
+1) "chongqing"
+2) "shenzhen"
+3) "shanghai"
+4) "beijing"
 ```
 
-### 网络配置  
+## Stream 流
+**Redis5.0**之前采用 List 结构结合 `lpush` `rpop` 实现简单队列(点对点、一对一)  
 
-```conf
-# 打开的话就是限定本地连接
-#bind 127.0.0.1
-# 保护模式
-protected-mode yes
-# 端口
-port 6777
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redislist消息队列模型.png)
 
-# TCP listen() backlog.
-# 设置tcp 队列总和  理解为连接数  
-tcp-backlog 511
+Redis 发布订阅(pub/sub),缺点就是消息无法持久化，如果出现网络断开、Redis 宕机等，消息就会被丢弃。而且也没有 Ack 机制来保证数据的可靠性，假设一个消费者都没有，那消息就直接被丢弃了
 
-# Close the connection after a client is idle for N seconds (0 to disable)
-# 超时时间 
-timeout 0
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis发布订阅模型.png)
 
-# 心跳时间 单位 秒 
-tcp-keepalive 300
+Stream流实现消息队列，它支持消息的持久化、支持自动生成全局唯一 ID、支持ack确认消息的模式、支持消费组模式等，让消息队列更加的稳定和可靠
 
-# By default Redis does not run as a daemon. Use 'yes' if you need it.
-daemonize yes
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redisStream图.png)  
 
-# Specify the server verbosity level. 日志级别  
-# This can be one of:
-# debug (a lot of information, useful for development/testing)
-# verbose (many rarely useful info, but not a mess like the debug level)
-# notice (moderately verbose, what you want in production probably)
-# warning (only very important / critical messages are logged)
-loglevel notice
+- `Message Content`消息内容
+- `Consumer group`消费组，通过`XGROUP CREATE` 命令创建，同一个消费组可以有多个消费者
+- `Last_delivered_id`游标，每个消费组会有个游标 last_delivered_id，任意一个消费者读取了消息都会使游标 last_delivered_id 往前移动
+- `Consumer`消费者，消费组中的消费者
+- `Pending_ids`消费者会有一个状态变量，用于记录被当前消费已读取但未ack的消息Id，如果客户端没有ack，这个变量里面的消息ID会越来越多，一旦某个消息被ack它就开始减少
+  - 它用来确保客户端至少消费了消息一次  
 
-# 默认数据库数量
-databases 16
+略 P25-26
 
-# 密码 
-requirepass 123123
+## Bitfield 位域
+P 27
 
-```
-
-## 发布订阅  
-
-> Redis 发布订阅（ pub/sub ）是一种**消息通信模式**：发送者（ pub ）发送消息，订阅者（ sub ）接收消息。  
-> Redis 客户端可以订阅任意数量的频道。  
-
-- `subscribe channel1` 订阅频道  
-- `publish channel1 hello` 给 channel1 发消息 hello 返回值是订阅者的数量  
+# 持久化   
 
 
 
-## Jedis  
+## RDB (Redis DataBase)
 
-
-
-## Redis 事务 
-> Redis 事务是一个单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。   
-> Redis 事务的主要作用就是**串联多个命令**防止别的命令插队。
-
-### Multi、Exec、Discard
-
-> 从输入 Multi 命令开始，输入的命令都会依次进入命令队列中，但不会执行，直到输入 Exec 后，Redis 会将之前的命令队列中的命令依次执行。  
-
-> 组队的过程中可以通过 Discard 来放弃组队
-
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis组队.png)
-
-> 分为两种情况,若组队中有错误,那么所有命令都不会执行,若执行阶段有错误,那么只有错误的命令不会生效执行    
-
-> 关注 jedis 和 redisTemplate 中的使用,以及事务的操作
-
-### 悲观锁  
-> 悲观锁(Pessimistic Lock), 顾名思义,就是很悲观,每次去拿数据的时候都认为别人会修改,所以每次在拿数据的时候都会上锁,   
-> 这样别人想拿这个数据就会block直到它拿到锁。传统的关系型数据库里边就用到了很多这种锁机制,比如行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。
-
-### 乐观锁 
-
-> 乐观锁（Optimistic Lock），即每次去拿数据的时候都认为其他线程不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间有没有其他线程去更新这个数据，可以使用版本号等机制。  
-> 乐观锁适用于多读的应用类型，这样可以提高吞吐量。   
-> Redis 就是利用这种 check-and-set 机制实现事务的   
-
-### Watch、unwatch 
-> 在执行 multi 之前，先执行 `watch key1 [key2]`，可以监视一个（或多个 ）key 。如果在事务执行之前这个 key 被其他命令所改动，那么事务将被打断。   
-> 取消 WATCH 命令对所有 key 的监视。如果在执行 WATCH 命令之后，EXEC 命令或 DISCARD 命令先被执行，那么就不需要再执行 UNWATCH 
-
-### 事务三特性(redis)  
-
-- 单独的隔离操作
-  - 事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。
-- 没有隔离级别的概念
-  - 队列中的命令没有提交之前都不会实际被执行，因为事务提交前任何指令都不会被实际执行。
-- 不保证原子性
-  - 事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚 。
-
-
-
-## 持久化 
-
-### RDB (Redis DataBase)
-
-> 在指定的**时间间隔**内将内存中的数据集快照写入磁盘， 即 Snapshot 快照，恢复时是将快照文件直接读到内存里    
-> Redis 会单独创建一个子进程（fork）来进行持久化。    
-> 先将数据写入到一个临时文件中，待持久化过程完成后，再将这个临时文件内容覆盖到 dump.rdb。    
-> 默认文件为 `dump.rdb`  默认路径为 `./`
-> 整个过程中，主进程是不进行任何 IO 操作的，这就确保了极高的性能。如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那 RDB 方式要比 AOF 方式更加的高效。
-> RDB 的缺点是最后一次持久化后的数据可能丢失  
+在指定的**时间间隔**内将内存中的数据集快照写入磁盘， 即`Snapshot`快照，恢复时是将快照文件直接读到内存里    
+Redis 会单独创建一个子进程(fork)来进行持久化。    
+先将数据写入到一个临时文件中，待持久化过程完成后，再将这个临时文件内容覆盖到 `dump.rdb`文件中。    
+默认文件为 `dump.rdb`  默认路径为 `./`
+整个过程中，主进程是不进行任何 IO 操作的，这就确保了极高的性能。如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那 RDB 方式要比 AOF 方式更加的高效。
+RDB 的缺点是最后一次持久化后的数据可能丢失  
 
 Fork
-> 作用是复制一个与当前进程一样的进程。新进程的所有数据（变量、环境变量、程序计数器等） 数值都和原进程一致，但是是一个全新的进程，并作为原进程的子进程   
-> 在 Linux 程序中，fork() 会产生一个和父进程完全相同的子进程，但子进程在此后多会 exec 系统调用，出于效率考虑，Linux 中引入了 写时复制技术   
-> 一般情况父进程和子进程会共用同一段物理内存，只有进程空间的各段的内容要发生变化时，才会将父进程的内容复制一份给子进程   
+作用是复制一个与当前进程一样的进程。新进程的所有数据（变量、环境变量、程序计数器等） 数值都和原进程一致，但是是一个全新的进程，并作为原进程的子进程   
+在 Linux 程序中，fork() 会产生一个和父进程完全相同的子进程，但子进程在此后多会 exec 系统调用，出于效率考虑，Linux 中引入了 写时复制技术   
+一般情况父进程和子进程会共用同一段物理内存，只有进程空间的各段的内容要发生变化时，才会将父进程的内容复制一份给子进程   
 
 ```conf
 # 自动持久化 策略
@@ -413,7 +447,7 @@ rdbchecksum yes
   - 在备份周期在一定间隔时间做一次备份，所以如果 Redis 意外 down 掉的话，就会丢失最后一次快照后的所有修改  
 
 
-### AOF (Append Only File) 
+## AOF (Append Only File) 
 
 > 以日志的形式来**记录每个写操作(增量保存)**, 将Redis 执行过的所有指令记录下来(读除外),只许追加文件不能改写文件   
 > redis 启动时会读取该文件重新构建数据  
@@ -471,6 +505,126 @@ auto-aof-rewrite-min-size 64mb
 - 如果对数据不敏感，可以选单独用 RDB。
 - 不建议单独用 AOF，因为可能会出现 Bug。
 - 如果只是做纯内存缓存，可以都不用。
+
+
+
+
+# 配置文件详解   
+
+## 单位设置方式  
+
+```conf
+# Note on units: when memory size is needed, it is possible to specify
+# it in the usual form of 1k 5GB 4M and so forth:
+#
+# 1k => 1000 bytes
+# 1kb => 1024 bytes
+# 1m => 1000000 bytes
+# 1mb => 1024*1024 bytes
+# 1g => 1000000000 bytes
+# 1gb => 1024*1024*1024 bytes
+#
+# units are case insensitive so 1GB 1Gb 1gB are all the same.
+```
+
+## 文件包含 配置分离
+
+```conf
+# include /path/to/local.conf
+# include /path/to/other.conf
+```
+
+## 网络配置  
+
+```conf
+# 打开的话就是限定本地连接
+#bind 127.0.0.1
+# 保护模式
+protected-mode yes
+# 端口
+port 6777
+
+# TCP listen() backlog.
+# 设置tcp 队列总和  理解为连接数  
+tcp-backlog 511
+
+# Close the connection after a client is idle for N seconds (0 to disable)
+# 超时时间 
+timeout 0
+
+# 心跳时间 单位 秒 
+tcp-keepalive 300
+
+# By default Redis does not run as a daemon. Use 'yes' if you need it.
+daemonize yes
+
+# Specify the server verbosity level. 日志级别  
+# This can be one of:
+# debug (a lot of information, useful for development/testing)
+# verbose (many rarely useful info, but not a mess like the debug level)
+# notice (moderately verbose, what you want in production probably)
+# warning (only very important / critical messages are logged)
+loglevel notice
+
+# 默认数据库数量
+databases 16
+
+# 密码 
+requirepass 123123
+
+```
+
+# 发布订阅  
+
+> Redis 发布订阅（ pub/sub ）是一种**消息通信模式**：发送者（ pub ）发送消息，订阅者（ sub ）接收消息。  
+> Redis 客户端可以订阅任意数量的频道。  
+
+- `subscribe channel1` 订阅频道  
+- `publish channel1 hello` 给 channel1 发消息 hello 返回值是订阅者的数量  
+
+
+
+
+# Redis 事务 
+> Redis 事务是一个单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。   
+> Redis 事务的主要作用就是**串联多个命令**防止别的命令插队。
+
+## Multi、Exec、Discard
+
+> 从输入 Multi 命令开始，输入的命令都会依次进入命令队列中，但不会执行，直到输入 Exec 后，Redis 会将之前的命令队列中的命令依次执行。  
+
+> 组队的过程中可以通过 Discard 来放弃组队
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/redis组队.png)
+
+> 分为两种情况,若组队中有错误,那么所有命令都不会执行,若执行阶段有错误,那么只有错误的命令不会生效执行    
+
+> 关注 jedis 和 redisTemplate 中的使用,以及事务的操作
+
+## 悲观锁  
+> 悲观锁(Pessimistic Lock), 顾名思义,就是很悲观,每次去拿数据的时候都认为别人会修改,所以每次在拿数据的时候都会上锁,   
+> 这样别人想拿这个数据就会block直到它拿到锁。传统的关系型数据库里边就用到了很多这种锁机制,比如行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。
+
+## 乐观锁 
+
+> 乐观锁（Optimistic Lock），即每次去拿数据的时候都认为其他线程不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间有没有其他线程去更新这个数据，可以使用版本号等机制。  
+> 乐观锁适用于多读的应用类型，这样可以提高吞吐量。   
+> Redis 就是利用这种 check-and-set 机制实现事务的   
+
+### Watch、unwatch 
+> 在执行 multi 之前，先执行 `watch key1 [key2]`，可以监视一个（或多个 ）key 。如果在事务执行之前这个 key 被其他命令所改动，那么事务将被打断。   
+> 取消 WATCH 命令对所有 key 的监视。如果在执行 WATCH 命令之后，EXEC 命令或 DISCARD 命令先被执行，那么就不需要再执行 UNWATCH 
+
+### 事务三特性(redis)  
+
+- 单独的隔离操作
+  - 事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。
+- 没有隔离级别的概念
+  - 队列中的命令没有提交之前都不会实际被执行，因为事务提交前任何指令都不会被实际执行。
+- 不保证原子性
+  - 事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚 。
+
+
 
 
 ## 主从复制  
