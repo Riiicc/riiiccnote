@@ -103,6 +103,12 @@ IP-PBX 首先是一个PBX（Private Branch eXchange），它具有传统PBX的�
 UA是"User Agent"（用户代理）的缩写，它是指与FreeSWITCH进行通信的实体或设备。UA可以是软件应用程序、硬件电话、软电话或其他VoIP终端设备   
 在FreeSWITCH中，UA通常是通过SIP（Session Initiation Protocol，会话初始协议）与FreeSWITCH进行通信   
 
+## Leg
+单腿通话（one-legged connection）
+
+
+
+
 
 # 安装配置
 待 略
@@ -386,7 +392,302 @@ uuid_bridge <alice_uuid> <bob_uuid>
 
 某些App有与其对应的API，如上述的`bridge`和`uuid_bridge`，还有`transfer`和`uuid_transfer`、`playback`和`uuid_playback`等。    
 
-uuid一族的API都是在一个Channel之外对Channel进行控制的，它们应用于不能参与到通话中却又想对正在通话的Channel做点什么的场景中,例如alice和bob正在畅聊，有个“坏蛋”使用uuid_kill将电话切断，或使用uuid_broadcast对他们广播恶作剧音频，或者使用uuid_record对他们谈话的内容录音等
+uuid一族的API都是在一个`Channel`之外对`Channel`进行控制的，它们应用于不能参与到通话中却又想对正在通话的Channel做点什么的场景中,例如alice和bob正在畅聊，有个“坏蛋”使用`uuid_kill`将电话切断，或使用`uuid_broadcast`对他们广播恶作剧音频，或者使用`uuid_record`对他们谈话的内容录音等
+
+
+# FreeSWITCH架构 
+FreeSWITCH由一个稳定的核心（Core）及一些外围模块组成。这些外围的模块根据其功能和用途的不同又分为Endpoint、Codec、Dialplan、Application等不同的类别
+
+FreeSWITCH内部使用线程模型来处理并发请求，每个连接都在单独的线程中进行处理，不同的线程间通过Mutex互斥访问共享资源，并通过消息和异步事件等方式进行通信。这种架构能处理很高的并发，并且在多核环境中运算能均匀地分布到多颗CPU或单CPU的多个核心上
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/freeswitch架构说明.png)
+
+
+## 数据库  
+FreeSWITCH支持多种流行的关系型数据库。为了尽量减少对其他系统的依赖，FreeSWITCH默认使用的数据库类型是SQLite。SQLite是一种嵌入式数据库，FreeSWITCH可以直接调用它提供的库函数来访问数据。由于`SQLite`会进行读锁定，因此在使用SQLite时不建议通过外部应用直接读取核心数据库   
+
+除`SQLite`外，系统也支持通过使用`ODBC`方式连接其他数据库，如`PostgreSQL`、`MySQL`等
+
+
+## 接口 Interface
+FreeSWITCH核心层定义了以下接口,来自`switch_types.h`
+
+```c
+typedef enum {
+
+    SWITCH_ENDPOINT_INTERFACE,        // 终点
+
+    SWITCH_TIMER_INTERFACE,           // 定时器
+
+    SWITCH_DIALPLAN_INTERFACE,        // 拨号计划
+
+    SWITCH_CODEC_INTERFACE,           // 编解码
+
+    SWITCH_APPLICATION_INTERFACE,     // 应用程序
+
+    SWITCH_API_INTERFACE,             // 命令
+
+    SWITCH_FILE_INTERFACE,            // 文件
+
+    SWITCH_SPEECH_INTERFACE,          // 语音合成
+
+    SWITCH_DIRECTORY_INTERFACE,       // 用户目录
+
+    SWITCH_CHAT_INTERFACE,            // 聊天计划
+
+    SWITCH_SAY_INTERFACE,             // 分词短语
+
+    SWITCH_ASR_INTERFACE,             // 语音识别
+
+    SWITCH_MANAGEMENT_INTERFACE,      // 网管接口
+
+    SWITCH_LIMIT_INTERFACE,           // 资源限制接口
+
+    SWITCH_CHAT_APPLICATION_INTERFACE // 聊天应用程序接口
+
+} switch_module_interface_name_t;
+
+```
+
+## 接口实现
+- `终点Endpoint` 主要包含了不同呼叫控制协议的接口，如SIP、TDM硬件、H323以及Google Talk等
+- `拨号计划Diaplan` Dialplan主要提供查找电话路由功能。系统默认的Dialplan由mod_dialplan_xml提供
+- `聊天计划 Chatplan` 类似于Dialplan，不同的是Chatplan主要对文本消息进行路由
+- `应用程序 Application` FreeSWITCH提供了许多App使复杂的任务变得异常简单，如mod_voicemail模块可以很简单地实现语音留言；而mod_conference模块则可以实现高质量的多方会议
+- `命令接口FSAPI` 简称API，它是一种对外的命令接口
+- `XMl接口 XML Interface`,XML接口支持多种获取XML的方式，它可以从本地的配置文件或数据库中读取，甚至**可以从一个能动态返回XML的远程HTTP服务器中读取**
+- `编解码器 Codec`,FreeSWITCH支持最广泛的Codec，除了大多数VoIP系统支持的G711、G722、G729、GSM外，它还支持iLBC、BV16/32、SILK、iSAC、CELT、OPUS等
+- `语音识别及语音合成 ASR/TTS` 支持语音自动识别（ASR）及文本/语音转换（TTS）
+- `格式、文件接口 Format，File Interface` ,支持不同格式的声音文件回放、录音，如WAV、MP3等。mod_sndfile模块通过libsndfile库提供了对大部分音频文件格式的支持。MP3格式是在mod_shout中实现的 
+- `日志 Logger`,日志可以写到控制台、日志文件、系统日志（syslog）以及远程的日志服务器。实现日志功能的模块有mod_console、mod_logfile、mod_syslog等
+- `定时器 Timer`,实时的话音通话需要非常准确的定时器。在FreeSWITCH中，可以使用软时钟（soft timer）或内核提供的时钟来定时（如Linux中的timerfd或posix timer）
+- `嵌入式语言 Embeded Language`,通过swig可支持多种嵌入式语言进而控制呼叫流程，如Lua、Javascript、Perl等
+- `事件套接字 Event Socket`，通过Event Socket可以使用任何其他语言（只要支持Socket），通过TCP Socket可控制呼叫流程、扩展FreeSWITCH的功能
+
+
+
+
+## 事件（Event）
+
+## 目录结构
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/freeswitch目录结构.png)
+
+
+## 配置文件
+配置文件由许多XML文件组成。在系统装载时，XML解析器会将所有XML文件组织在一起，并读入内存，组成一个大的XML文档（Document），称为XML注册表。XML文档本身非常适合描述复杂的数据结构，在FreeSWITCH中可以非常灵活地使用这些数据。这种设计的好处是可以帮助实现非常高的可扩展性
+
+### freeswitch.xml
+
+freeswitch.xml是所有XML文件的黏合剂,配置了其他 xml的位置信息   
+在这个文件中可以看到很多如下的xml代码  
+
+```xml
+  <section name="dialplan" description="Regex/XML Dialplan">
+    <X-PRE-PROCESS cmd="include" data="dialplan/*.xml"/>
+  </section>
+```
+
+`X-PRE-PROCESS`预处理指令，作用是将data参数指定的文件内容包含（include）到当前文件中来  
+
+`X-PRE-PROCESS`是一个预处理指令，FreeSWITCH在加载阶段只对其进行简单替换，**并不进行语法分析，因此对它进行注释是没有效果的**   
+如果不需要某条 `X-PRE-PROCESS`预处理指令 需要将其标签破环即可 也就是将`X-PRE-PROCESS`标签改成诸如 `aaa-X-PRE-PROCESS`即可    
+
+### vars.xml 
+vars.xml主要通过`X-PRE-PROCESS`指令定义了一些全局变量   
+
+```xml
+  <X-PRE-PROCESS cmd="set" data="domain=$${local_ip_v4}"/>
+  <X-PRE-PROCESS cmd="set" data="domain_name=$${domain}"/>
+  <X-PRE-PROCESS cmd="set" data="hold_music=local_stream://moh"/>
+
+```
+
+使用`X-PRE-PROCESS`设置的变量都称为**全局变量**，它们在FreeSWITCH运行期间永远都是有效的。**全局变量**以`$${var}`表示
+而后面可能还会遇到**局部变量**，它们通常在拨号计划中，在一个呼叫的生命周期中才有效。局部变量以`${var}`表示
+
+在加载vars.xml之前，FreeSWITCH就已经“算”出并设置了一些全局变量，也就是说有些变量是系统在运行时自动设置的，其有默认的值    
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/freeswitch全局变量.png)
+
+
+实际使用中，可以使用`global_getvar`或这个API命令来查看这些变量的值  
+
+```shell
+freeswitch@riiicc> global_getvar sound_prefix
+/usr/local/freeswitch/sounds/en/us/callie
+
+freeswitch@riiicc> global_getvar local_ip_v4
+192.168.0.104
+```
+
+由于这些变量是在vars.xml加载前设置的，因而可以在varx.xml中覆盖它们
+
+```xml
+<X-PRE-PROCESS cmd="set" data="local_ip_v4=192.168.0.106"/>
+```
+
+
+### autoload_configs目录
+autoload_configs目录下的各种配置文件会在系统启动时装入。一般来说都是模块级的配置文件，每个模块对应一个（注意，并不是所有的模块都有配置文件）。文件名一般以“模块名.conf.xml”的方式命名（模块名中不包含“mod_”，如sofia.conf.xml）
+
+`sofia.conf.xml`的文件名并不重要，完全可以改成其他的名字，只要扩展名是.xml就可以正常被`freeswitch.xml`中的`X-PRE-PROCESS`预处理指令装入。这里重要的是，这个配置文件中的`configuration`标签的name属性，`mod_sofia`在启动时会向XML注册表中查找name为`sofia.conf`的configuration，进而访问其下面的配置参数。
+
+autoload_configs目录中有一个特殊的`modules.conf.xml`，其决定了FreeSWITCH启动时自动加载哪些模块。如下面的配置片断，如果需要在FreeSWITCH启动时自动加载某个模块，就在这里添加一行，如果不需要，就注释掉或直接删除
+
+```xml
+<configuration name="modules.conf" description="Modules">
+  <modules>
+    <!-- Loggers (I'd load these first) -->
+    <load module="mod_console"/>
+    <!-- <load module="mod_graylog2"/> -->
+    <load module="mod_logfile"/>
+    <!-- <load module="mod_syslog"/> -->
+
+    <!--<load module="mod_yaml"/>-->
+
+    <!-- Multi-Faceted -->
+    <!-- mod_enum is a dialplan interface, an application interface and an api command interface -->
+    <load module="mod_enum"/>
+    ...
+</configuration>
+```
+
+### XML用户目录
+XML用户目录决定了哪些用户可以注册到FreeSWITCH上,SIP并不要求一定要注册才可以打电话，但是通话前的用户认证参数仍需要在用户目录中进行配置。   
+用户目录的默认配置文件在conf/directory/下，系统自带的配置文件为default.xml
+
+```xml
+<include>  <!-- 包含其他XML文件 -->
+  <!-- 域名或IP地址（addr中@符号右侧的部分）-->
+  <domain name="$${domain}">
+    <params>
+      <!-- dial-string参数指定呼叫字符串，包括SIP INVITE和Presence信息等 -->
+      <param name="dial-string" value="{^^:sip_invite_domain=${dialed_domain}:presence_id=${dialed_user}@${dialed_domain}}${sofia_contact(*/${dialed_user}@${dialed_domain})},${verto_contact(${dialed_user}@${dialed_domain})}"/>
+      <!-- 这些参数是Verto正常工作所需的 -->
+      <param name="jsonrpc-allowed-methods" value="verto"/>
+      <!-- <param name="jsonrpc-allowed-event-channels" value="demo,conference,presence"/> -->
+    </params>
+
+    <variables>
+      <!-- 设置变量，例如录音是否为立体声 -->
+      <variable name="record_stereo" value="true"/>
+      <variable name="default_gateway" value="$${default_provider}"/>
+      <variable name="default_areacode" value="$${default_areacode}"/>
+      <variable name="transfer_fallback_extension" value="operator"/>
+    </variables>
+
+    <groups>
+      <group name="default">
+	<users>
+	  <!-- 包含default目录下的所有XML文件 -->
+	  <X-PRE-PROCESS cmd="include" data="default/*.xml"/>
+	</users>
+      </group>
+
+      <group name="sales">
+	<users>
+	  <!--type="pointer"表示指针，可以在多个组中使用相同的用户-->
+	  <user id="1000" type="pointer"/>
+	  <user id="1001" type="pointer"/>
+	  <user id="1002" type="pointer"/>
+	  <user id="1003" type="pointer"/>
+	  <user id="1004" type="pointer"/>
+	</users>
+      </group>
+    </groups>
+  </domain>
+</include>
+
+```
+
+
+## 呼叫相关概念
+如果Bob与Alice通话，典型的呼叫流程主要有以下两种：   
+- Bob向FreeSWITCH发起呼叫，FreeSWITCH接着启动另一个UA呼叫Alice，两者通话。   
+- FreeSWITCH同时呼叫Bob和Alice，两者接电话后FreeSWITCH将a-leg和b-leg桥接（bridge）到一起，两者通话  
+
+> 第二种流程还有一种变种,有人利用上、下行通话的不对称性卖电话回拨卡获取利润, FreeSWITCH作为服务器，把回拨卡卖给Bob。Bob按回拨卡上的号码呼叫FreeSWITCH，FreeSWITCH不应答，而是在获得Bob的主叫号码后直接挂机。然后FreeSWITCH回拨Bob，Bob接听后FreeSWITCH启动一个IVR程序指示Bob输入Alice的号码。最后FreeSWITCH再呼叫Alice
+
+### 来去话、Session、Channel与Call
+Bob到FreeSWITCH的通话称为`来话`注意，在这里我们都是针对FreeSWITCH来说  
+FreeSWITCH作为一个B2BUA再去呼叫Alice时，就称为`去话`
+
+> 每一次呼叫，FreeSWITCH都会启动一个Session（会话，它包含SIP会话，SIP会在每对UAC-UAS之间生成一个SIP Session），用于控制整个呼叫，它会一直持续到通话结束。其中，每个Session都控制着一个Channel（通道，又称信道），Channel是一对UA间通信的实体，相当于FreeSWITCH的一条腿（leg），每个Channel都用一个唯一的UUID来标识，称为Channel UUID。另外，Channel上可以绑定一些呼叫参数，称为Channel Variable（通道变量）。Channel中可能包含媒体（音频或视频流），也可能不包含。通话时，FreeSWITCH的作用是将两个Channel（a-leg和b-leg，通常先创建的或占主动的叫a-leg）桥接（bridge）到一起，使双方可以通话。这两路桥接的通话（两条腿）在逻辑上组成一个通话，称为一个Call
+
+### 回铃音与Early Media
+在早期，B端所在的交换机b只向A端交换机a传送地址全（ACM）信号，证明呼叫是可以到达B的，A端听到的回铃音的铃流是由A端所在的交换机生成并发送的。但后来，为了在A端能听到B端特殊的回铃音（如“您拨打的电话正在通话中…”或“对方暂时不方便接听您的电话”尤其是现代交换机，支持各种个性化的彩铃），回铃音只能由B端交换机发送。在B接听电话前，回铃音和彩铃是不收费的（不收取主叫A的本次通话费。彩铃费用一般是在被叫端即B端以月租或套餐形式收取的）。这些回铃音就称为Early Media（早期媒体）。在SIP通信中，它是由SIP的183（带有SDP）消息描述的
+
+> 理论上讲，B接听电话后交换机b可以一直不向交换机a发送应答消息，而是将真正的话音数据伪装成Early Media，以实现“免费通话”。但这种应用是有限制的，大多数交换机允许Early Media的时间不会太长，如1分钟，以防止不守规则的人进行免费通话  
+
+### 全局变量与局部变量
+使用`X-PRE-PROCESS`在FreeSWITCH中设置一些变量（包括自动生成的变量），在后续使用时可以用`$${var}`的形式来进行引用。这些变量是全局有效的，因而称为全局变量。    
+另外一些变量是在`Dialplan`、`Application`或`Directory`中设置的，它们会影响呼叫流程且可以被动态改变。这些变量一般与一个呼叫有关，严格地说是与一个Channel有关，因而又称为Channel Variable，即通道变量。通道变量可以以`${var}`的形式引用。   
+
+全局变量仅在预处理阶段（系统启动时或重新装载-reloadxml时）被求值，一般用于设置一些系统一旦启动就不会轻易改变的量，如`$${domain}`或`$${local_ip_v4}`等。     
+而局部变量（即通道变量）仅在Channel的生命周期中有效。所以，两者最大的区别是，`$${var}`只在加载时求值一次，而`${var}`则在每次执行时都求值,如一个新电话进来时
+
+
+# 拨号计划
+拨号计划（Dialplan）是FreeSWITCH中至关重要的一部分。它的主要作用就是对电话进行路由（从这一点上来说，相当于一个路由表），决定和影响通话的流程。说得简明一点，就是当一个用户拨号时，对用户所拨的号码进行分析，进而决定下一步该做什么   
+
+Dialplan是FreeSWITCH中一个抽象的部分，它可以支持多种不同的格式，如Asterisk风格的格式（由mod_dialplan_asterisk提供）、LUA、inline等。在实际使用中，用得最多的还是XML格式
+
+## XML Dialplan
+拨号计划的配置文件默认在conf/dialplan目录中，我们在第5章中讲过，它们是在freeswitch.xml中定义的，是由以下预处理指令装入的
+
+`<X-PRE-PROCESS cmd="include" data="dialplan/*.xml"/>`
+
+拨号计划由多个`Context` 组成。每个Context中有多个`Extension`。所以`Context`就是多个`Extension`的逻辑集合，它相当于一个分组。一个`Context`中的`Extension`与其他`Context`中的`Extension`在逻辑上是隔离的   
+
+```xml
+<include>
+  <context name="default">
+    <extension name="laugh break">
+      <condition field="destination_number" expression="^9386$">
+        <action application="answer"/>
+        <action application="sleep" data="1500"/>
+        <action application="playback" data="phrase:funny_prompts"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+  </context>
+</include>
+```
+
+Extension相当于路由表中的表项，其中，每一个Extension都有一个name属性，name可以是任意合法的字符串，本身对呼叫流程没有任何影响。一个合适的名字，有助于你在查看Log时发现它
+
+在Extension中可以对一些condition（测试条件）进行判断，如果满足测试条件所指定的表达式，则执行对应的Action（动作）
+
+在Dialplan中将下列Extension配置加入到`conf/dialplan/default.xml`中，并作为第一个Extension
+
+```xml
+  <extension name="My Echo Test">
+  <condition field="destination_number" expression="^echo|1234$">
+    <action application="answer" data=""/>
+    <action application="echo" data=""/>
+  </condition>
+</extension>
+```
+
+使用软电话呼叫号码1234（或echo，如果你拨的是echo的话）
+
+第一个要执行的动作是answer，它是一个App，用于对来话进行应答（由于这是一个SIP呼叫，因而底层的信令会给主叫发送200 OK消息），然后执行echo（它也是一个App，在第4章我们讲过，这些App大部分来自于mod_dptools），它的作用就相当于一个回音壁，你说什么都反原封不动地反弹回来，所以你能听到自己的声音。
+
+实际上，在这个例子中，我们呼叫1234时创建了一个单腿的呼叫，与其说我们跟FreeSWITCH在通话，还不如说我们在跟FreeSWITCH中的一个App在通话。而XML Dialplan只是帮助我们找到这个（些）App
+
+
+### 默认的配置文件
+系统默认提供的配置文件包含三个Context，分别是default、features和public。它们分别在三个XML文件中
+
+- default是默认的Dialplan，一般来说注册用户都可以通过它来打电话，如拨打其他分机或外部电话等  
+- public一般用于接收外来呼叫，因为从外部进来的呼叫是不可信的，所以要进行更严格的控制
+
+> 在default和public中，又通过include预处理指令分别加入了default和include目录中的所有.xml文件。这些目录中的文件仅包含一些额外的Extension。由于Dialplan在处理的时候是一定的顺序进行的，所以一定要注意这些文件的装入顺序。通常这些文件都是按文件名排序的，如00_、01_等等。如果你想添加新的Extension，可以在这些目录里创建文件。但要注意，这些文件的优先级一般比直接写在default.xml或public、xml中要低（取决于include语句的位置）
+
+?> 实际，由于在处理Dialplan时要对每一项进行正则表达式匹配，这是非常影响效率的。所以在生产环境中，往往要删除这些默认的Dialplan，只保留或添加有用的部分
+
+### 通道变量
 
 
 
@@ -404,3 +705,20 @@ uuid一族的API都是在一个Channel之外对Channel进行控制的，它们�
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 参考
+> - [FreeSWITCH权威指南](https://book.douban.com/subject/25902109/)
