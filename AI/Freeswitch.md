@@ -111,6 +111,10 @@ UA是"User Agent"（用户代理）的缩写，它是指与FreeSWITCH进行通�
 
 
 # 安装配置
+
+https://github.com/signalwire/freeswitch/releases
+
+安装包列表 https://files.freeswitch.org/freeswitch-releases/
 待 略
 
 
@@ -688,14 +692,16 @@ Extension相当于路由表中的表项，其中，每一个Extension都有一�
 ?> 实际，由于在处理Dialplan时要对每一项进行正则表达式匹配，这是非常影响效率的。所以在生产环境中，往往要删除这些默认的Dialplan，只保留或添加有用的部分
 
 ### 通道变量
+在FreeSWITCH中，每一次呼叫都由一条或多条“腿”（Call Leg）组成，其中的一条腿又称为一个Channel（通道），每一个Channel都有很多属性，用于标识Channel的状态、性能等，这些属性称为Channel Variable（通道变量），可简写为Channel Var、Chan Var或Var。
+
+通过使用`info`这个App，可以查看所有的通道变量,info中显示的变量名称和真实的通道变量名称有些差别   
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/freeswitch通道变量.png)
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/freeswitch通道变量2.png)
 
 
-
-
-
-
-
-
+### 测试条件
 
 
 

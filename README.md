@@ -17,6 +17,13 @@
 https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction   
 网易账号登录   
 
+大语言模型（LLM）学习路径和资料汇总
+https://ninehills.tech/articles/97.html
+
+
+AIGC 指南
+https://ywh1bkansf.feishu.cn/wiki/QPe5w5g7UisbEkkow8XcDmOpn8e
+
 
 # API
 [菜鸟教程JDK11文档](https://www.runoob.com/manual/jdk11api/index.html)
@@ -33,6 +40,9 @@ https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction
 - [计划](/日常/计划.md)
 - [工具网站](/日常/工具网站.md)
 - [脑洞](/日常/脑洞.md)
+
+# C语言
+https://wangdoc.com/clang/
 
 # Java
 - [Java项目](Java/Java项目.md)
@@ -109,17 +119,20 @@ https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction
 - [ThymeLeaf](/前端/ThymeLeaf.md)
 - [ES6学习](/前端/ES6学习.md)
 - [CSS](/前端/CSS.md)
+- [VUE开发](/前端/vue开发.md)
 
 
 # 软件
 
 - [IDEA配置及插件](/软件/IDEA配置及插件.md)
 - [PicGo图床配置](/软件/PicGo图床配置.md)
+- [破解相关](/软件/破解相关.md)
 
 
-# 树莓派
+# 嵌入式
 - [树莓派](/树莓派/树莓派.md)
 - [微雪墨水屏实践](/树莓派/微雪墨水屏实践.md)
+- [STM32开发](/树莓派/STM32.md)
 
 
 # Markdown
