@@ -90,7 +90,7 @@ https://wangdoc.com/clang/
 * [Nginx](/Linux/Nginx)  
 * [linux快速命令](/Linux/linux快速命令)
 * [VIM](/Linux/VIM)  
-* [VIM](/Linux/Hugo配置)  
+* [Hugo配置](/Linux/Hugo配置)  
 
 # Freeswitch  
 * [Freeswitch](/AI/Freeswitch)  
