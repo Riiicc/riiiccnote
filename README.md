@@ -10,6 +10,7 @@
 [阿秀的学习笔记](https://interviewguide.cn/)    
 [java-tutorial](https://github.com/dunwu/java-tutorial)    
 [皮蛋网全栈java](https://pdai.tech/)    
+[freeCodeCamp](https://www.freecodecamp.org/chinese/learn/)    
 
 
 # AI
@@ -89,6 +90,7 @@ https://wangdoc.com/clang/
 * [Nginx](/Linux/Nginx)  
 * [linux快速命令](/Linux/linux快速命令)
 * [VIM](/Linux/VIM)  
+* [VIM](/Linux/Hugo配置)  
 
 # Freeswitch  
 * [Freeswitch](/AI/Freeswitch)  
@@ -132,6 +134,7 @@ https://wangdoc.com/clang/
 
 
 # 嵌入式
+- [嵌入式路线](/树莓派/嵌入式路线.md)
 - [树莓派](/树莓派/树莓派.md)
 - [微雪墨水屏实践](/树莓派/微雪墨水屏实践.md)
 - [STM32开发](/树莓派/STM32.md)

@@ -270,7 +270,7 @@ int main() {
 }
 ```
 
-## 指针  
+# 指针  
 为了能够有效的访问到内存的**每个单元(即一个字节)** ，就给内存单元进行了编号，这些编号被称为该内存单元的地址。因为**每个内存单元都有地址**，所以变量存储的数据也是有地址的    
 
 通过地址能找到所需的变量单元，**地址指向该变量单元,这个(内存)地址也叫指针**
@@ -296,7 +296,7 @@ int** foo1;
 
 ```
 
-### 取值运算符 *
+## 取值运算符 *
 指针代表内存地址,如果要获取某个指针的值,就需要使用取值运算符 `*`
 
 ```c
@@ -312,7 +312,7 @@ void increment(int* p) {
 
 ?> 上面的方法参数是一个整数指针`p`,`*p`就标识指针所指的值,`*p+1`就表示指针所指的值加1,也就是将指针所指的值加1,但是这个方法不需要返回值,因为直接操作内存中的值.对于需要大量存储空间的大型变量，复制变量值传入函数，非常浪费时间和空间，不如传入指针来得高效
 
-### 取址运算符 & 
+## 取址运算符 & 
 取址运算符 `&` 用于获取变量的地址,`&` 放在变量名前,返回变量的地址
 
 ```c
@@ -344,7 +344,7 @@ if(&*p == &i) //true
 if(*&i == i) //true
 ```
 
-### 指针初始化
+## 指针初始化
 
 使用 `int* p;`创建一个指针的时候,编译器会为指针变量本身分配一个内存空间，但是这个内存空间里面的值是**随机的**,这时一定不能去读写指针变量指向的地址，因为那个地址是随机地址，很可能会导致严重后果,更不能对 `*p`进行赋值,这样也会改变那个随机地址的值,导致错误结果    
 
@@ -366,7 +366,7 @@ p = &i;
 int* p = NULL;
 ```
 
-### 指针运算
+## 指针运算
 指针和整数值的加减运算  
 
 ```c
@@ -450,7 +450,7 @@ int main() {
 
 指针之间的比较运算，比如 ==、!= 、<、 <= 、 >、 >=。比较的是各自的内存地址的大小，返回值是整数 1`true`或 0`false`    
 
-### 野指针  
+## 野指针  
 指针指向的位置不可知的指针,称为野指针  
 
 野指针的成因:
@@ -482,12 +482,12 @@ int main() {
 - 指针指向空间释放,即时置NULL
 - 指针使用前检查有效性   
 
-### 二级指针  
+## 二级指针  
+
+多余套娃
 
 
-
-
-## 数组 
+# 数组 
 
 ```c
 //声明数组 
@@ -566,7 +566,7 @@ int* p = &a[0];
 int* p = a;
 ```
 
-### sizeof运算符
+## sizeof运算符
 
 `sizeof` 用来计算一个类型/对象的所占用的内存大小。对于数组就会返回整个数组的字节长度   
 
@@ -591,7 +591,7 @@ printf("%zu\n", sizeof(x) / sizeof(int)); // 12
 ```
 
 
-### 变长数组 
+## 变长数组 
 
 数组声明的时候,通过变量指定数组大小,所以变长数组的大小只有在运行时才能确定   
 
@@ -613,7 +613,7 @@ free(arr)
 
 ```
 
-### 数组的复制  
+## 数组的复制  
 数组名是指针，所以复制数组不能简单地复制数组名  
 
 ```c
@@ -635,7 +635,7 @@ for (i = 0; i < N; i++)
 memcpy(a, b, sizeof(b));
 ```
 
-### 多维数组  
+## 多维数组  
 
 ```c
 //二维数组
@@ -685,13 +685,45 @@ printf("%d\n",sizeof(b)); //36
 printf("%d\n",sizeof(b)/sizeof(int)); //9
 ```
 
+## 数组作为函数的参数
+
+数组作为函数的参数，一般会同时传入`数组名`和`数组长度`
+
+```c
+int sum_array(int a[], int n) {
+  // ...
+}
+
+int a[] = {3, 5, 7, 3};
+int sum = sum_array(a, 4);
+
+//对二维数组来说 n作为第一维的长度
+
+int sum_array(int a[][4], int n) {
+  // ...
+}
+
+int a[2][4] = {
+  {1, 2, 3, 4},
+  {8, 9, 10, 11}
+};
+int sum = sum_array(a, 2);
+
+// 数组变量作为参数
+int a[] = {2, 3, 4, 5};
+int sum = sum_array(a, 4);
+
+// 数组字面量作为参数
+int sum = sum_array((int []){2, 3, 4, 5}, 4);
+
+```
 
 
+# 数组和指针
 
-## 数组和指针
-
-###  数组指针访问 
+##  数组指针访问 
 数组名可以直接进行加减法运算,等同于指针在数组间前后移动,即从一个成员的内存地址移动到下一个成员的内存地址,比如 对于数组`a`来说 `a+1` 返回下一个成员的`内存地址`,`a-1` 返回上一个成员的`内存地址`    
+
 
 ```c
 
@@ -719,13 +751,139 @@ while (*p != 999) {
 }
 ```
 
-数组名指向的地址是不能变的，所以上例中，不能直接对a进行自增，即a++的写法是错的，必须将a的地址赋值给指针变量p，然后对p进行自增
+数组名指向的地址是不能变的，所以上例中，不能直接对数组`a`进行自增，即`a++`的写法是错的，必须将a的地址赋值给指针变量p，然后对p进行自增  
+
+## 数组的地址 
+
+```c
+int a[5] = {11, 22, 33, 44, 55};
+int* p;
+
+// 下面两个写法等价
+p = &a[0];
+p = a;
 
 
-### 数组的地址  
+//在此基础上,可以用p 或a 进行遍历
+int main() {
+    int arr[5] = {1, 2, 3, 4, 5};
+    int* p = &arr[0];
+
+    //1
+    for (int i = 0; i <5; i++) {
+        printf("%d\n", arr[i]);
+    }
+    //2
+    for (int i = 0; i <5; i++) {
+        printf("%d\n", *(arr+i));
+    }
+    //3
+    for (int i = 0; i <5; i++) {
+        printf("%d\n", *(p + i));
+    }
+    //4
+    for (int i = 0; p <arr+5; p++) {
+        printf("%d\n", *p);
+    }
+
+    return 0;
+
+}
+
+```
+
+上面的遍历方式中,第一种和第二种是等价的,C编译系统将`arr[i]`转换为`*(arr+i)`进行处理,即先计算元素地址,再根据地址取值    
+第三种方法是直接根据地址取值,大大提高效率
 
 
-## 字符串
+```c
+int main() {
+    int arr[5] = {1, 2, 3, 4, 5};
+    int* p = &arr[2];
+
+    printf("%p\n", arr);//000000891f5ffa20
+    printf("%p\n", p);//000000891f5ffa28 地址差值 2位 int 8位
+    printf("%d\n", *p);//3
+    printf("%d\n", p[0]);//3
+    printf("%d\n", p[1]);//4
+    printf("%d\n", p[-1]);//2
+    return 0;
+
+}
+
+```
+
+如果`p` 指向数组`arr`的第4个元素,那么`*p`就是`arr` 的第3个元素,`p[1]`就是`arr` 的第4个元素,`p[-1]`就是`arr` 的第2个元素
+
+
+
+```c
+int main() {
+    int arr[5] = {1, 2, 3, 4, 5};
+    int* p = arr;
+
+    printf("%p\n", p);//0000006071fff7c0
+    printf("%p\n", &p);//0000006071fff7b8
+
+
+    printf("%p\n", arr);//0000006071fff7c0
+    printf("%p\n", &arr);  //0000006071fff7c0
+    printf("%p\n", &arr+1);//0000006071fff7d4
+
+    return 0;
+
+}
+```
+
+上面的`p` 指向数组`arr`的地址,也就是`arr[0]`的地址;   
+`&p`指向`p`的地址;   
+`&arr`指向数组`arr`,二者是相同的;    
+`&arr+1` 相当于移动了一个`arr`的长度,也就是5个int的长度,可以看到地址差值是20个字节
+
+
+
+## 二维数组和指针   
+
+```c
+int main() {
+    int arr[3][4] = {{1,2,3,4},
+                     {5,6,7,8},
+                     {9,10,11,12}};
+    //第一部分
+    printf("%p\n",arr); //000000dac49ffa50
+    printf("%p\n",arr[0]);//000000dac49ffa50
+    printf("%p\n",arr[1]);//000000dac49ffa60
+    printf("%p\n",arr+1);//000000dac49ffa60
+
+    printf("%d\n",arr[0][0]);//1
+    printf("%p\n",&arr[0][0]);//000000dac49ffa50
+    printf("%p\n",&arr[0][1]);//000000dac49ffa54
+    printf("%p\n",&arr);//000000dac49ffa50
+
+    return 0;
+
+}
+```
+
+从第一部分中可以看出,`arr`,`arr[0]`,`arr[0][0]`是相同的,都是数组`arr`的地址也就是`a[0][0]`的地址,`arr[1]`的地址和`arr[0]`的地址差了16个字节,也就是4个int的大小, `arr[0][0]`的地址和`arr[0][1]`差了4个字节,也就是一个int的大小   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 字符串
 C 语言没有单独的字符串类型，字符串被当作字符数组，即`char`类型的数组,字符串`"Hello"`是当作数组`{'H', 'e', 'l', 'l', 'o'}`处理的    
 在字符串结尾，C 语言会自动添加一个全是二进制`0`的字节，写作`\0`字符，表示字符串结束,字符串`"Hello"`实际储存的数组是`{'H', 'e', 'l', 'l', 'o', '\0'}`   
 
@@ -738,99 +896,619 @@ C 语言没有单独的字符串类型，字符串被当作字符数组，即`ch
 
 // 等价于
 "Hello"
+
+//如果字符串内部包含双引号，则该双引号需要使用反斜杠转义
+"She replied, \"It does.\""
+
+//如果字符串过长，可以在需要折行的地方，使用反斜杠（\）结尾，将一行拆成多行,第二行必须顶格书写
+"hello \
+world"
+
+```
+
+即使双引号里面只有一个字符（比如`"a"`），也依然被处理成字符串（存储为2个字节），而不是字符`'a'`（存储为1个字节）
+
+
+```c
+char greeting[50] = "Hello, ""how are you ""today!";
+// 等同于
+char greeting[50] = "Hello, how are you today!";
+//等同于
+char greeting[50] = "Hello, "
+  "how are you "
+  "today!";
+
+```
+
+## 声明字符串
+字符串可以声明成一个指针或字符数组  
+
+```c
+// 写法一
+char s[14] = "Hello, world!";
+// 或者
+char s[] = "Hello, world!";
+
+// 写法二
+char* s = "Hello, world!";
+
 ```
 
 
+上述两种写法略有差异,区别如下    
+
+```c
+
+//1. 指针形式不能修改某个字符
+char* s = "Hello, world!";
+s[0] = 'z'; // 错误
+
+char s[] = "Hello, world!";
+s[0] = 'z';
+
+//2. 数组形式不能重新赋值,这个和数组的定义相同
+char* s = "hello";
+s = "world";
+
+char s[] = "hello";
+s = "world"; // 报错
+
+```
+
+**思考**    
+针对`char s[10] = "hello";` 字符数组s的长度是`10`，但是字符串“hello”的实际长度只有6（包含结尾符号`\0`），所以后面空出来的4个位置，都会被初始化为`\0`
+
+```c
+int main() {
+    char s[10] = "hello";
+    printf("%s", "==");
+    for (int i = 0; i < sizeof(s);i++) {
+        if(s[i]== '\0'){
+            printf("%c", 'f');
+        }else{
+            printf("%c", s[i]);
+        }
+    }
+    printf("%s", "==");
+    return 0;
+}
+
+//输出 ==hellofffff==
+```
+
+那么如果刚好相等又是什么情况?`char s[5] = "hello";` 会导致什么问题呢?
+
+```c
+int main() {
+    char s[5] = "hello";
+    printf("%s", "==");
+    for (int i = 0; i < sizeof(s);i++) {
+        if(s[i]== '\0'){
+            printf("%c", 'f');
+        }else{
+            printf("%c", s[i]);
+        }
+    }
+    printf("%s\n", "==");
+//上面打印内容 ==hello==
 
+    printf("%s\n", s);//hello 这里hello后面是有一位的'\0' 也就是系统自动补全了'\0'
+    printf("%d\n", strlen(s)); //6 
+    printf("%d\n", sizeof(s)); //5
+    return 0;
+}
 
+```
 
+如果是`char s[6] = "hello";`呢?
 
+```c
+int main() {
+    char s[6] = "hello";
+    printf("%s", "==");
+    for (int i = 0; i < sizeof(s);i++) {
+        if(s[i]== '\0'){
+            printf("%c", 'f');
+        }else{
+            printf("%c", s[i]);
+        }
+    }
+    printf("%s\n", "==");
+    //==hellof==
 
+    printf("%s\n", s);//hello 这里就是一个hello 没有后缀的'\0'
+    printf("%d\n", strlen(s)); //5
+    printf("%d\n", sizeof(s)); //6
+    return 0;
+}
+```
 
+**注意`strlen()`返回值的差异**
 
 
+## 常用函数 
 
+`strlen()` 函数,返回字符串的字节长度,不包括末尾的空字符`\0`,使用时需要加载头文件`string.h`   
 
+```c
+// string.h
+size_t strlen(const char* s);
 
+char* str = "hello";
+int len = strlen(str); // 5
+```
 
+注意和`sizeof()`的区别,`sizeof()`返回的是字节数,`strlen()`返回的是字符个数
 
+```c
 
+char s[50] = "hello";
+printf("%d\n", strlen(s));  // 5
+printf("%d\n", sizeof(s));  // 50 
 
+```
 
+`strcpy()`函数，用于将一个字符串的内容复制到另一个字符串，相当于字符串赋值
 
+```c
+//API 
+strcpy(char dest[], const char source[])
 
+#include <stdio.h>
+#include <string.h>
 
+int main(void) {
+  char s[] = "Hello, world!";
+  char t[100];
 
+  strcpy(t, s);
 
+  t[0] = 'z';
+  printf("%s\n", s);  // "Hello, world!"
+  printf("%s\n", t);  // "zello, world!"
+}
+```
 
+`strcpy()`的返回值是一个字符串指针（即`char*`），指向第一个参数
 
+```c
+char* s1 = "beast";
+char s2[40] = "Be the best that you can be.";
+char* ps;
 
+ps = strcpy(s2 + 7, s1);
 
+puts(s2); // Be the beast
+puts(ps); // beast
+```
 
+从`s2`的第7个位置开始拷贝字符串`beast`，前面的位置不变。这导致s2后面的内容都被截去了，因为会连beast结尾的空字符一起拷贝,读取字符串时,发现了`\0`就会返回,如果使用如下代码测试即可看到`s2`的全貌
 
+```c
 
+int main() {
 
+    char* s1 = "beast";
+    char s2[40] = "Be the best that you can be.";
+    char* ps;
 
+    ps = strcpy(s2+7,s1);
+    puts(s2);
+    puts(ps);
 
+    printf("%s", "==");
+    for (int i = 0; i < sizeof(s2);i++) {
+        if(s2[i]== '\0'){
+            printf("%c", 'f');
+        }else{
+            printf("%c", s2[i]);
+        }
+    }
+    printf("%s\n", "==");
+    return 0;
+}
+```
 
+代码输出 `==Be the beastfhat you can be.ffffffffffff==`,可以看到原来 `best `(带空格)的位置被`beast`替换,并顺序补入了`\0`,导致that的`t`被替换,其实对于`字符数组s2`来说,是可以看到所有改动的,但是对于`字符串s2`来说就只有`\0`前的内容了    
 
+`strcpy()`函数有安全风险，因为它并不检查目标字符串的长度，是否足够容纳源字符串的副本，可能导致写入溢出。如果不能保证不会发生溢出，建议使用`strncpy()`函数代替
 
+`strncpy()跟`strcpy()`的用法完全一样，只是多了第3个参数，用来指定复制的最大字符数，防止溢出目标字符串变量的边界,第三个参数n定义了复制的最大字符数。如果达到最大字符数以后，源字符串仍然没有复制完，就会停止复制     
 
+```c
+char s1[40];
+char s2[12] = "hello world";
 
+strncpy(s1, s2, 5);
+s1[5] = '\0';
 
+printf("%s\n", s1); // hello
+```
 
+`strcat()`函数用于连接字符串。它接受两个字符串作为参数，把第二个字符串的副本添加到第一个字符串的末尾,这个函数会改变第一个字符串，但是第二个字符串不变
 
+```c
+char s1[12] = "hello";
+char s2[6] = "world";
 
+strcat(s1, s2);
+puts(s1); // "helloworld"
+```
 
 
+`strncat()`用于连接两个字符串，用法与`strcat()`完全一致，只是增加了第三个参数，指定最大添加的字符数,在添加过程中，一旦达到指定的字符数，或者在源字符串中遇到空字符`\0`，就不再添加了   
 
+```c
+char s1[10] = "Monday";
+char s2[8] = "Tuesday";
 
+strncat(s1, s2, 3);
+puts(s1); // "MondayTue"
+```
 
+`sprintf()`函数跟`printf()`类似，但是用于将数据写入字符串，而不是输出到显示器。该函数的原型定义在`stdio.h`头文件里面  
+`snprintf()`只比`sprintf()`多了一个参数n，用来控制写入变量的字符串不超过`n - 1`个字符，剩下一个位置写入空字符`\0`
 
+```c
 
+char first[6] = "hello";
+char last[6] = "world";
+char s[40];
 
+sprintf(s, "%s %s", first, last);
 
+printf("%s\n", s); // hello world
 
+```
 
+## 练习题
 
+下面是一些C Primer Plus的习题
 
+```c
+//输出什么？？
+int main() {
+    char note[] = "see you at the snack bar. ";
+    char*  ptr;
+    ptr = note;
 
+    puts(ptr);//see you at the snack bar. 
+    puts(++ptr);//ee you at the snack bar. 
+    note[7] = '\0';
+    puts(note);//see you
+    puts(ptr);//ee you
+    puts(++ptr);//e you
+    return 0;
+}
 
+//输出什么？？
+int main() {
+    char food[] = "Yummy";
+    char*  ptr;
+    ptr = food+ strlen(food);//将ptr的指针指向了food末尾
 
+    while (--ptr>=food)
+        puts(ptr);
 
+    return 0;
+}
+//输出
+// y
+// my
+// mmy
+// ummy
+// Yummy
+```
 
 
+# 函数  
 
+## 函数声明定义
+函数的声明有一下几点   
 
+1. 函数的返回值类型,函数必须给出返回值类型,如果没有返回值,使用void代替   
+2. 参数,如果没有参数也是用void代替
+3. 函数体
+4. `return` 语句,没有返回值可以省略
 
+?> 没有返回值的函数，使用void关键字表示返回值的类型。  
+没有参数的函数，声明时要用void关键字表示参数类型(可以省略)   
 
 
+如果返回值类型非 void，但被调函数中没有 return 语句，函数会返回一个不确定的值   
 
+```c
+int test(){
 
+    printf("hello\n");
+    printf("hello dfasdf\n");
+    printf("he\n");
+//    return 0;
+}
 
+int main() {
+    int  i =test();
+    printf("%d\n",i);
+    return 0;
+}
+```
 
+上述代码打印结果是`he3`,如果最后一个打印内容是`printf("he");` 那么打印结果是`he2`,如果是`printf("hello");`那么打印结果是`he5`,也就是最后一个打印内容的字符长度,这么看也不是不确定的值哈哈
 
+**如果省略函数的返回值类型，默认为int类型,但是不要这么写**
+在CLion中会得到提示`Type specifier missing, defaults to int'; ISO C99 and later do not support implicit int`,编译通过可以运行,但是会有警告
 
+## main函数
 
+`main()`是程序的入口函数，即所有的程序一定要包含一个main()函数。程序总是从这个函数开始执行，如果没有该函数，程序就无法启动。其他函数都是通过它引入程序的
 
+```c
+int main(void) {
+  printf("Hello World\n");
+  return 0;
+}
+```
 
+?> C 语言约定，返回值0表示函数运行成功，如果返回其他非零整数，就表示运行失败，代码出了问题。  
+系统根据`main()`的返回值，作为整个程序的返回值，确定程序是否运行成功  
+如果`main()`里面省略`return 0`这一行，编译器会自动加上(其他函数不会)，**即main()的默认返回值为0**   
 
 
+## 参数的传值
 
+C语言的函数传参都是**值传递**，即函数的参数是实参的拷贝，对形参的修改不会影响实参。
+但是,可以通过传递指针的方法实现引用传递
 
 
+```c
+void Swap(int x, int y) {
+  int temp;
+  temp = x;
+  x = y;
+  y = temp;
+}
 
+int a = 1;
+int b = 2;
+Swap(a, b); // 无效
 
+//指针实现引用传递
+void Swap(int* x, int* y) {
+  int temp;
+  temp = *x;
+  *x = *y;
+  *y = temp;
+}
 
+int a = 1;
+int b = 2;
+Swap(&a, &b);
+```
 
 
+## 函数指针   
 
+函数本身就是内存中的一段代码,C语言中可以通过指针获取函数    
 
+```c
+void print(int a) {
+  printf("%d\n", a);
+}
 
+void (*print_ptr)(int) = &print;  
+void (*print_ptr)(int) = print;  
 
+//通过指针调用函数  
+(*print_ptr)(10)
+```
 
+C语言中函数名本身就是指向函数代码的指针(跟数组类似),通过函数名就能获取函数地址,所以`&print`等同于`print`
 
+对于任意函数，都有五种调用函数的写法,实际上是三种,主要是 `*` `&` 和自身的函数调用 
 
+```c
+void print(int a) {
+    printf("%d\n", a);
+}
+
+
+int main() {
+    void (*print_ptr)(int) = &print;
+//    void (*print_ptr)(int) = print;
+// 写法一
+    print(10);
+
+// 写法二
+    (*print)(10);
+
+// 写法三
+    (&print)(10);
+
+// 写法四
+    (*print_ptr)(10);
+
+// 写法五
+    print_ptr(10);
+
+    return 0;
+}
+
+```
+
+带`*` `&` 的函数调用一般用函数参数或者返回值是一个函数的时候   
+
+```c
+//函数compute()的第一个参数也是一个函数
+int compute(int (*myfunc)(int), int, int);
+```
+
+
+## 函数原型  
+由于函数必须先声明，后使用。但是程序总是先运行`main()`函数，导致所有其他函数都必须在`main()`函数之前声明    
+`main()`是整个程序的入口，也是主要逻辑，放在最前面比较好。另一方面，对于函数较多的程序，保证每个函数的顺序正确，会变得很麻烦
+所以C语言中,可以在程序开头给出函数原型即可(类似接口和实现),后续函数具体实现放在`main`函数后面
+
+```c
+int twice(int);
+// 等同于
+int twice(int num);
+
+
+int main(int num) {
+  return twice(num);
+}
+
+int twice(int num) {
+  return 2 * num;
+}
+```
+
+## exit()
+
+`exit()`函数用来终止整个程序的运行。一旦执行到该函数，程序就会立即结束。该函数的原型定义在头文件`stdlib.h`里面
+`exit()`可以向程序外部返回一个值，它的参数就是程序的返回值。一般来说，使用两个常量作为它的参数：`EXIT_SUCCESS`（相当于 0）表示程序运行成功，`EXIT_FAILURE`（相当于 1）表示程序异常中止,这两个常数也是定义在`stdlib.h`里面
+
+```c
+// 程序运行成功
+// 等同于 exit(0);
+exit(EXIT_SUCCESS);
+
+// 程序异常中止
+// 等同于 exit(1);
+exit(EXIT_FAILURE);
+```
+
+C 语言还提供了一个`atexit()`函数，用来登记exit()执行时额外执行的函数，用来做一些退出程序时的收尾工作。该函数的原型也是定义在头文件`stdlib.h`
+
+```c
+int atexit(void (*func)(void));
+```
+
+`atexit()`的参数是一个函数指针。注意，它的参数函数（下例的print）不能接受参数，也不能有返回值
+
+```c
+//exit()执行时会先自动调用atexit()注册的print()函数，然后再终止程序
+void print(void) {
+  printf("something wrong!\n");
+}
+
+atexit(print);
+exit(EXIT_FAILURE);
+```
+
+## 函数说明符
+
+### extern 
+
+对于多文件的项目，源码文件会用到其他文件声明的函数,用`extern`说明该函数的定义来自其他文件
+
+```c
+extern int foo(int arg1, char arg2);
+
+int main(void) {
+  int a = foo(2, 3);
+  // ...
+  return 0;
+}
+```
+
+?> 函数原型默认就是`extern`，所以这里不加`extern`，效果是一样的
+
+### static 
+默认情况下，每次调用函数时，函数的内部变量都会重新初始化，不会保留上一次运行的值   
+`static`用于函数内部声明变量时，表示该变量只需要初始化一次，不需要在每次调用时都进行初始化。也就是说，它的值在两次调用之间保持不变  
+`static`修饰的变量初始化时，**只能赋值为常量，不能赋值为变量**
+
+```c
+#include <stdio.h>
+
+void counter(void) {
+  static int count = 1;  // 只初始化一次
+  printf("%d\n", count);
+  count++;
+}
+
+int main(void) {
+  counter();  // 1
+  counter();  // 2
+  counter();  // 3
+  counter();  // 4
+}
+```
+
+在块作用域中，`static`声明的变量有默认值`0`
+
+```c
+static int foo;
+// 等同于
+static int foo = 0;
+```
+
+`static`可以用来修饰函数本身,表示该函数只能在当前文件里使用，如果没有这个关键字，其他文件也可以使用这个函数（通过声明函数原型）
+
+```c
+static int Twice(int num) {
+  int result = num * 2;
+  return(result);
+}
+```
+
+`static`也可以用在参数里面，修饰参数数组,`static`对程序行为不会有任何影响，只是用来告诉编译器，该数组长度至少为3，某些情况下可以加快程序运行速度。另外，需要注意的是，对于多维数组的参数，**static仅可用于第一维的说明**
+
+```c
+int sum_array(int a[static 3], int n) {
+  // ...
+}
+```
+
+### const 
+`const`说明符，表示函数内部不得修改该参数变量   
+
+```c
+// 函数f()的参数是一个指针p，函数内部可能会改掉它所指向的值*p，从而影响到函数外部
+void f(int* p) {
+  // ...
+}
+
+//修改为  
+void f(const int* p) {
+  *p = 0; // 该行报错,无法修改p的值
+}
+
+```
+
+上面的`f(const int* p)` 只能限制修改`*p`的值,不能限制修改p的值,也就是p的地址是可以修改的  
+
+```c
+void f(const int* p) {
+  int x = 13;
+  p = &x; // 允许修改
+}
+```
+
+想限制修改`p`，可以把`const`放在`p`前面,但是此时`*p`的值是可以修改的
+
+```c
+void f(int* const p) {
+  int x = 13;
+  p = &x; // 该行报错
+}
+```
+
+
+如果想同时限制修改`p`和`*p`，需要使用两个const
+
+```c
+void f(const int* const p) {
+  // ...
+}
+```
+
+## 可变参数
+
+```c
+int printf(const char* format, ...);
+```
 
 
 
@@ -859,5 +1537,5 @@ C 语言没有单独的字符串类型，字符串被当作字符数组，即`ch
 **内容来自以下平台学习总结:** 
 
 - [B站C语言](https://www.bilibili.com/video/BV1Bh4y1q7Nt)
-- [C Primer Plus]()
-- [网道C 语言教程](https://wangdoc.com/clang/)
+- [C Primer Plus](https://book.douban.com/subject/1240002/)
+- [网道C语言教程](https://wangdoc.com/clang/)
