@@ -7,13 +7,28 @@
 
 
 # 安装  
-https://github.com/gohugoio/hugo/releases  下载 extended 版本（理解为高性能版本）的 windows zip压缩包   
+1. https://github.com/gohugoio/hugo/releases  下载 extended 版本（理解为高性能版本）的 windows zip压缩包   
+2. 将解压目录配置到环境变量中
+3. 通过命令 `hugo version` 查看hugo版本信息   
 
-直接打开压缩吧执行 hugo.exe安装    
-通过命令 `hugo version` 查看hugo版本信息   
+# 创建网站
+1. `hugo new site cuttontail-blog` 创建新博客   
 
 
-`hugo new site cuttontail-blog` 创建新博客   
+# 配置 Hugo 主题  
+
+主题备选网站  https://themes.gohugo.io/   
+
+主题直接下载后放在 themes中
+
+一般安装的 Hugo 主题的文件结构中都会有 `exampleSite` 文件夹，也是你在选择主题时参考的网站 demo    
+比如exampleSite下有 content ,  static  和  config.toml 3 个文件，就找到你自己的站点跟目录下这对应的三个文件。在把对应目录中的内容分别复制过去   
+
+![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexohugo%E9%85%8D%E7%BD%AE1.png)
+
+
+# 创建文章  
+`hugo new xxx.md`  
 
 **文件夹说明**    
 - archetypes：存放用 hugo 命令新建的 Markdown 文件应用的 front matter 模版
@@ -24,18 +39,6 @@ https://github.com/gohugoio/hugo/releases  下载 extended 版本（理解为高
 - public：存放 Hugo 生成的静态网页
 - themes：存放主题文件
 - config.toml：网站配置文件
-
-
-
-# 配置 Hugo 主题  
-
-主题备选网站  https://themes.gohugo.io/   
-
-主题直接下载后放在 themes中
-
-一般安装的 Hugo 主题的文件结构中都会有 `exampleSite` 文件夹，也是你在选择主题时参考的网站 demo    
-比如exampleSite下有 content ,  static  和  config.toml 3 个文件，就找到你自己的站点跟目录下这对应的三个文件。在把对应目录中的内容分别复制过去
-
 
 
 # 本地调试 

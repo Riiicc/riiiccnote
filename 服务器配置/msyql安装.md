@@ -31,9 +31,14 @@ yum -y localinstall mysql57-community-release-el7-11.noarch.rpm
 
 ## 第三步：在线安装Mysql
 
-```
+```shell
+# 先获取  MySQL GPG 密钥
+rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+
+#安装
 yum -y install mysql-community-server
-或者
+
+#或者
 yum -y install mysql-server
 ```
 **下载的东西比较多 要稍微等会**
@@ -52,6 +57,12 @@ systemctl enable mysqld
 systemctl daemon-reload
 ```
 ## 第六步：修改root本地登录密码
+
+[随机密码连接1](https://suijimimashengcheng.bmcx.com/)
+[随机密码连接2](https://1password.com/zh-cn/password-generator/)
+
+**密码选择特殊符号尽量避免 $ 在执行其他mysql命令可能需要转义**
+
 
 mysql安装完成之后，在/var/log/mysqld.log文件中给root生成了一个临时的默认密码。
 ```
