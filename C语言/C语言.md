@@ -94,7 +94,21 @@ C 语言自带的所有这些功能，统称为`标准库`(standard library) ，
 > 1byte  = 8 bit 也就是8个二进制单元，能组成2^8 种可能最大值 为 11111111 即十进制的255，表示范围 0-255     
 > 据此可以推算 如下图：  
 
-![](https://hexoric-1310528773.cos.ap-beijing.myqcloud.com/hexo/c语言数据类型范围.png)
+
+类型 | 字节数 | 范围
+-----|--------|-------
+signed char | 1 | -128~127
+unsigned char | 1 | 0~255
+short | 2 | -32768~32767
+unsigned short | 2 | 0~65535
+int | 4 | -21,4748,3648~21,4748,3647
+unsigned int | 4 | 0~42,9496,7295
+long | 4 | -2,147,483,648~2,147,483,647
+unsigned long | 4 | 0~4,294,967,295
+long long | 8 | -9,223,372,036,854,775,808~9,223,372,036,854,775,807
+unsigned long long | 8 | 0~18,446,744,073,709,5516,1548,577,647
+float | 4 | 1.2E-38~3.4E+38
+double | 8 | 2.3E-308~1.7E+308
 
 
 不同计算机的int 类型的大小是不一样的，比较常见的是使用4个字节存储一个int类型的值  
@@ -265,10 +279,18 @@ int main() {
     printf("PIX = %f\n",PIX);
     printf("%d\n", MALE);
     printf("%d\n", FEMALE);
+    printf("%d\n", OTHER);
     return 0;
-
 }
+// PI = 3.140000
+// PIX = 3.140000
+// 0
+// 1
+// 2
 ```
+
+?> `MALE` 默认从0开始，如果将`MALE`设置为 `MALE = 1`那么打印结果就是FEMALE = 2，OTHER = 3,以此类推  
+
 
 # 指针  
 为了能够有效的访问到内存的**每个单元(即一个字节)** ，就给内存单元进行了编号，这些编号被称为该内存单元的地址。因为**每个内存单元都有地址**，所以变量存储的数据也是有地址的    
@@ -310,7 +332,7 @@ void increment(int* p) {
 
 ```
 
-?> 上面的方法参数是一个整数指针`p`,`*p`就标识指针所指的值,`*p+1`就表示指针所指的值加1,也就是将指针所指的值加1,但是这个方法不需要返回值,因为直接操作内存中的值.对于需要大量存储空间的大型变量，复制变量值传入函数，非常浪费时间和空间，不如传入指针来得高效
+?> 上面的方法参数是一个整数指针`p`,`*p`就标识指针所指的值,`*p+1`就表示指针所指的值加1，这个方法不需要返回值,因为直接操作内存中的值.对于需要大量存储空间的大型变量，复制变量值传入函数，非常浪费时间和空间，不如传入指针来得高效
 
 ## 取址运算符 & 
 取址运算符 `&` 用于获取变量的地址,`&` 放在变量名前,返回变量的地址
@@ -1113,7 +1135,7 @@ int main() {
 
 `strcpy()`函数有安全风险，因为它并不检查目标字符串的长度，是否足够容纳源字符串的副本，可能导致写入溢出。如果不能保证不会发生溢出，建议使用`strncpy()`函数代替
 
-`strncpy()跟`strcpy()`的用法完全一样，只是多了第3个参数，用来指定复制的最大字符数，防止溢出目标字符串变量的边界,第三个参数n定义了复制的最大字符数。如果达到最大字符数以后，源字符串仍然没有复制完，就会停止复制     
+`strncpy()跟` `strcpy()`的用法完全一样，只是多了第3个参数，用来指定复制的最大字符数，防止溢出目标字符串变量的边界,第三个参数n定义了复制的最大字符数。如果达到最大字符数以后，源字符串仍然没有复制完，就会停止复制     
 
 ```c
 char s1[40];
@@ -1233,9 +1255,9 @@ int main() {
 }
 ```
 
-上述代码打印结果是`he3`,如果最后一个打印内容是`printf("he");` 那么打印结果是`he2`,如果是`printf("hello");`那么打印结果是`he5`,也就是最后一个打印内容的字符长度,这么看也不是不确定的值哈哈
+上述代码打印结果是`he3`,如果最后一个打印内容是`printf("he");` 那么打印结果是`he2`,如果是`printf("hello");`那么打印结果是`he5`,也就是最后一个打印内容的字符长度   
 
-**如果省略函数的返回值类型，默认为int类型,但是不要这么写**
+**如果省略函数的返回值类型，默认为int类型,但是不要这么写**    
 在CLion中会得到提示`Type specifier missing, defaults to int'; ISO C99 and later do not support implicit int`,编译通过可以运行,但是会有警告
 
 ## main函数
@@ -1254,116 +1276,7 @@ int main(void) {
 如果`main()`里面省略`return 0`这一行，编译器会自动加上(其他函数不会)，**即main()的默认返回值为0**   
 
 
-## 参数的传值
-
-C语言的函数传参都是**值传递**，即函数的参数是实参的拷贝，对形参的修改不会影响实参。
-但是,可以通过传递指针的方法实现引用传递
-
-
-```c
-void Swap(int x, int y) {
-  int temp;
-  temp = x;
-  x = y;
-  y = temp;
-}
-
-int a = 1;
-int b = 2;
-Swap(a, b); // 无效
-
-//指针实现引用传递
-void Swap(int* x, int* y) {
-  int temp;
-  temp = *x;
-  *x = *y;
-  *y = temp;
-}
-
-int a = 1;
-int b = 2;
-Swap(&a, &b);
-```
-
-
-## 函数指针   
-
-函数本身就是内存中的一段代码,C语言中可以通过指针获取函数    
-
-```c
-void print(int a) {
-  printf("%d\n", a);
-}
-
-void (*print_ptr)(int) = &print;  
-void (*print_ptr)(int) = print;  
-
-//通过指针调用函数  
-(*print_ptr)(10)
-```
-
-C语言中函数名本身就是指向函数代码的指针(跟数组类似),通过函数名就能获取函数地址,所以`&print`等同于`print`
-
-对于任意函数，都有五种调用函数的写法,实际上是三种,主要是 `*` `&` 和自身的函数调用 
-
-```c
-void print(int a) {
-    printf("%d\n", a);
-}
-
-
-int main() {
-    void (*print_ptr)(int) = &print;
-//    void (*print_ptr)(int) = print;
-// 写法一
-    print(10);
-
-// 写法二
-    (*print)(10);
-
-// 写法三
-    (&print)(10);
-
-// 写法四
-    (*print_ptr)(10);
-
-// 写法五
-    print_ptr(10);
-
-    return 0;
-}
-
-```
-
-带`*` `&` 的函数调用一般用函数参数或者返回值是一个函数的时候   
-
-```c
-//函数compute()的第一个参数也是一个函数
-int compute(int (*myfunc)(int), int, int);
-```
-
-
-## 函数原型  
-由于函数必须先声明，后使用。但是程序总是先运行`main()`函数，导致所有其他函数都必须在`main()`函数之前声明    
-`main()`是整个程序的入口，也是主要逻辑，放在最前面比较好。另一方面，对于函数较多的程序，保证每个函数的顺序正确，会变得很麻烦
-所以C语言中,可以在程序开头给出函数原型即可(类似接口和实现),后续函数具体实现放在`main`函数后面
-
-```c
-int twice(int);
-// 等同于
-int twice(int num);
-
-
-int main(int num) {
-  return twice(num);
-}
-
-int twice(int num) {
-  return 2 * num;
-}
-```
-
-## exit()
+## exit()函数
 
 `exit()`函数用来终止整个程序的运行。一旦执行到该函数，程序就会立即结束。该函数的原型定义在头文件`stdlib.h`里面
 `exit()`可以向程序外部返回一个值，它的参数就是程序的返回值。一般来说，使用两个常量作为它的参数：`EXIT_SUCCESS`（相当于 0）表示程序运行成功，`EXIT_FAILURE`（相当于 1）表示程序异常中止,这两个常数也是定义在`stdlib.h`里面
@@ -1396,11 +1309,179 @@ atexit(print);
 exit(EXIT_FAILURE);
 ```
 
+
+
+
+## 参数的传值
+
+C语言的函数传参都是**值传递**，即函数的参数是实参的拷贝，对形参的修改不会影响实参。    
+但是,可以通过**传递指针的方法实现引用传递**
+
+
+```c
+void Swap(int x, int y) {
+  int temp;
+  temp = x;
+  x = y;
+  y = temp;
+}
+
+int a = 1;
+int b = 2;
+Swap(a, b); // 无效
+
+//指针实现引用传递
+void Swap(int* x, int* y) {
+  int temp;
+  temp = *x;
+  *x = *y;
+  *y = temp;
+}
+
+int a = 1;
+int b = 2;
+Swap(&a, &b);
+
+//下面的方式只是函数内的交换并不能实现参数交换
+void swap(int *p1,int *p2){
+    int *temp;
+    temp = p1;
+    p1 = p2;
+    p2 = temp;
+}
+
+```
+
+
+## 函数指针   
+
+函数本身就是内存中的一段代码,C语言中可以通过指针获取函数    
+
+```c
+void print(int a) {
+  printf("%d\n", a);
+}
+
+void (*print_ptr)(int) = &print;  
+void (*print_ptr)(int) = print;  
+
+//通过指针调用函数  
+(*print_ptr)(10)
+```
+
+C语言中函数名本身就是指向函数代码的指针(跟数组类似),通过函数名就能获取函数地址,所以`&print`等同于`print`
+
+对于任意函数，都有五种调用函数的写法,实际上是三种,主要是 `*` `&` 和自身的函数调用 
+
+```c
+void print(int a) {
+    printf("%d\n", a);
+}
+
+
+int main() {
+  //函数指针   
+  void (*print_ptr)(int) = &print;
+//    void (*print_ptr)(int) = print;
+// 写法一
+    print(10);
+
+// 写法二
+    (*print)(10);
+
+// 写法三
+    (&print)(10);
+
+// 写法四
+    (*print_ptr)(10);
+
+// 写法五
+    print_ptr(10);
+
+    return 0;
+}
+
+```
+
+带`*` `&` 的函数调用一般用函数参数或者返回值是一个函数的时候，如下：     
+
+```c
+//函数compute()的第一个参数也是一个函数 
+int compute(int (*myfunc)(int), int, int);
+```
+
+## 回调函数   
+有一个函数（假设函数名为fun），它有两个形参（x1和x2），定义x1和x2为指向函数的指针变量。在调用函数fun时，实参为两个函数名f1和f2，给形参传递的是函数f1和f2的入口地址。这样在函数fun中就可以调用f1和f2函数了    
+
+```c
+//定义fun函数，形参是指向函数的指针变量
+void fun(int (*x1)(int), int (*x2)(int, int)) {
+    int a, b, i = 3, j = 5;
+    a = (*x1)(i);
+    b = (*x2)(i, j);
+}
+```
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+//给一个整形数组 int arr[10] 赋10个随机值
+//回调函数
+void initArray(int *array,int arrayLen,int(*f)()){
+    for (int i = 0; i < arrayLen; i++) {
+        array[i] = (*f)();
+
+    }
+}
+
+//获取随机值
+int getRandomValue(){
+    return rand();
+}
+
+int main() {
+    int arrLen = 18;
+    int myArray[arrLen];
+    initArray(myArray,arrLen,&getRandomValue);
+    //遍历数组
+    for (int i = 0; i < arrLen; i++) {
+        printf("%d",myArray[i]);
+        printf("\n");
+    }
+}
+```
+
+
+
+## 函数原型  
+由于函数必须**先声明，后使用**。但是程序总是先运行`main()`函数，导致所有其他函数都必须在`main()`函数之前声明    
+`main()`是整个程序的入口，也是主要逻辑，放在最前面比较好。另一方面，对于函数较多的程序，保证每个函数的顺序正确，会变得很麻烦
+所以C语言中,可以在程序开头给出函数原型即可(类似接口和实现),后续函数具体实现放在`main`函数后面
+
+```c
+int twice(int);
+// 等同于
+int twice(int num);
+
+
+int main(int num) {
+  return twice(num);
+}
+
+int twice(int num) {
+  return 2 * num;
+}
+```
+
+
 ## 函数说明符
 
 ### extern 
 
-对于多文件的项目，源码文件会用到其他文件声明的函数,用`extern`说明该函数的定义来自其他文件
+对于多文件的项目，源码文件会用到其他文件声明的函数,用`extern`说明该函数的定义来自其他文件  
+或者说是该函数可以被外部文件调用    
+在定义函数省区`extern`说明符时，则隐含为外部函数    
 
 ```c
 extern int foo(int arg1, char arg2);
@@ -1412,39 +1493,14 @@ int main(void) {
 }
 ```
 
-?> 函数原型默认就是`extern`，所以这里不加`extern`，效果是一样的
+?> 函数原型默认就是`extern`，所以这里不加`extern`，效果是一样的   
+?> 如果定义为外部函数，则它不仅可被定义它的源文件调用，而且可以被其他文件中的函数调用，即其作用范围不只局限于其源文件，而是整个程序的所有文件
 
+ 
 ### static 
-默认情况下，每次调用函数时，函数的内部变量都会重新初始化，不会保留上一次运行的值   
-`static`用于函数内部声明变量时，表示该变量只需要初始化一次，不需要在每次调用时都进行初始化。也就是说，它的值在两次调用之间保持不变  
-`static`修饰的变量初始化时，**只能赋值为常量，不能赋值为变量**
 
-```c
-#include <stdio.h>
-
-void counter(void) {
-  static int count = 1;  // 只初始化一次
-  printf("%d\n", count);
-  count++;
-}
-
-int main(void) {
-  counter();  // 1
-  counter();  // 2
-  counter();  // 3
-  counter();  // 4
-}
-```
-
-在块作用域中，`static`声明的变量有默认值`0`
-
-```c
-static int foo;
-// 等同于
-static int foo = 0;
-```
-
-`static`可以用来修饰函数本身,表示该函数只能在当前文件里使用，如果没有这个关键字，其他文件也可以使用这个函数（通过声明函数原型）
+`static`修饰函数本身,表示该**函数只能在当前文件里使用**，如果没有这个关键字，其他文件也可以使用这个函数（通过声明函数原型） 
+这种函数也叫内部函数、静态函数    
 
 ```c
 static int Twice(int num) {
@@ -1505,10 +1561,792 @@ void f(const int* const p) {
 ```
 
 ## 可变参数
+有些函数的参数数量是不确定的，声明函数的时候，可以使用省略号...表示可变数量的参数  
 
 ```c
+#include <stdarg.h>
+//printf()函数的原型，除了有一个参数 format 固定以外，其他参数的数量是可变的，与格式字符串里面的占位符数量有关
 int printf(const char* format, ...);
 ```
+
+`...`符号必须放在参数序列的结尾
+
+使用可变参数需要引入头文件`stdarg.h`
+
+- `va_list`一个数据类型，用来定义一个可变参数对象。它必须在操作可变参数时，首先使用。
+- `va_start`一个函数，用来初始化可变参数对象。它接受两个参数，第一个参数是可变参数对象，第二个参数是原始函数里面，可变参数之前的那个参数，用来为可变参数定位。
+- `va_arg`一个函数，用来取出当前那个可变参数，每次调用后，内部指针就会指向下一个可变参数。它接受两个参数，第一个是可变参数对象，第二个是当前可变参数的类型。
+- `va_end`一个函数，用来清理可变参数对象
+
+
+```c
+#include <stdio.h>
+#include "stdarg.h"
+
+//可变参数求和 count 是可变参数的数量
+int sum(int count,...){
+
+    va_list args;//定义可变参数对象
+    va_start(args,count);//初始化可变参数对象
+    int total = 0;//初始化总数
+    for (int j = 0; j < count; j++) {
+        int ss = va_arg(args,int );//取出当前可变参数，并将指针后移到下一个参数
+        total += ss;
+    }
+    va_end(args);
+    return total;
+}
+```
+
+# 变量修饰符   
+
+## const 
+
+`const`修饰的变量叫做常量，是只读的，常量的值不能被修改。  
+
+```c
+const double PI = 3.14159;
+PI = 3; // 报错
+
+
+//数组成员不能修改
+const int arr[] = {1, 2, 3, 4};
+arr[0] = 5; // 报错
+
+```
+
+?> 指向常量的指针的值不能修改，`const int *ptr`是指`*ptr`得值不能修改，而不是`ptr`不能修改,关键区分`const` 和`*`的位置，`const`在前代表值不能修改，在后面代表地址不能修改 
+
+```c
+
+  int num1 = 10;
+  int num2 = 20;
+  const int *ptr = &num1;
+  *ptr = 20; // 报错
+
+  //但是ptr可以修改
+  ptr = &num2; // 正确
+
+
+```
+
+如果需要使指针（地址）不能修改，可以调整`const`的修饰位置，也就是将`const`放在`*`后面  
+
+```c
+int p = 1
+int* const x = &p; 
+
+x++; //报错
+```
+
+二者还能结合，定义一个不能修改的指针，指向一个不能修改的常量
+
+```c
+const char* const x;
+```
+
+`const`也可以用在函数形参中，表示函数不会修改传入的参数
+
+```c
+void foo(const int* p) {
+  // ...
+}
+```
+
+## static 
+默认情况下，每次调用函数时，函数的内部变量都会重新初始化，不会保留上一次运行的值   
+用于**局部变量**（函数体内定义的变量或者函数的形参），标识该变量的值会在每次执行后得到保留，下次调用函数时该变量是上次执行结束后的值   
+
+
+```c
+void staticFun(){
+    static int n = 10;
+    printf("%d\n",n);
+    n++;
+}
+
+int main() {
+    staticFun(); //11
+    staticFun(); //12
+    staticFun(); //13
+}
+
+```
+
+在块作用域中，`static`声明的变量有默认值`0`
+
+```c
+static int foo;
+// 等同于
+static int foo = 0;
+```
+
+用于**全局变量**表示该变量只用于当前文件，其他源码文件不可以引用该变量  
+
+?> static修饰的变量，初始化时，**值不能等于变量，必须是常量**
+
+```c
+int n = 10;
+static m = n; // 报错
+
+```
+
+## auto  
+
+`auto`说明符表示该变量的存储，由编译器自主分配内存空间，且只存在于定义时所在的作用域，退出作用域时会自动释放。     
+由于只要不是extern的变量（外部变量），都是由编译器自主分配内存空间的，这属于默认行为，所以该说明符没有实际作用，一般都省略不写
+
+## extern
+`extern`说明符表示，该变量在其他文件里面声明，没有必要在当前文件里面为它分配空间。通常用来表示，该变量是多个文件共享的
+为了防止多个extern对同一个变量进行多次初始化,**变量声明时，同时进行初始化，extern就会无效**   
+
+```c
+// extern 无效
+extern int i = 0;
+
+// 等同于
+int i = 0;
+```
+
+函数内部使用extern声明变量，就相当于该变量是静态存储，每次执行时都要从外部获取它的值
+
+
+## register  
+一般情况下，变量都是存储在内存中的，访问内存需要消耗时间，为了提高执行效率，允许将变量存储在寄存器中，提高访问速度。  
+使用register修饰后的变量，是否存储在寄存器中，由编译器自行决定，**编译器不保证将变量放入寄存器中**
+
+```c
+register int f; 
+```
+
+?> `register`只在局部变量中有效，同时也无法获取其地址（不在内存中），如果是数组，同样无法获取整个数组或任一成员的地址，
+
+
+## volatile  
+`volatile`说明符表示所声明的变量，可能会预想不到地发生变化（即其他程序可能会更改它的值），不受当前程序控制，因此编译器不要对这类变量进行优化，**每次使用时都应该查询一下它的值**    
+
+**`volatile`的目的是阻止编译器对变量行为进行优化**  
+
+```c
+int foo = x;
+// 其他语句，假设没有改变 x 的值
+int bar = x;
+```
+
+由于变量foo和bar都等于x，而且x的值也没有发生变化，所以编译器可能会把x放入缓存，直接从缓存读取值（而不是从 x 的原始内存位置读取），然后对foo和bar进行赋值。如果x被设定为volatile，编译器就不会把它放入缓存，每次都从原始位置去取x的值，因为在两次读取之间，其他程序可能会改变x   
+
+
+## restrict ？？？？
+`restrict`说明符允许编译器优化某些代码。它只能用于指针，表明该指针是访问数据的唯一方式，如果编译器知道某块内存只能用一个方式访问，可能可以更好地优化代码，因为不用担心其他地方会修改值
+
+https://wangdoc.com/clang/specifier#restrict
+
+
+
+# 内存管理
+
+C语言内存管理一部分是系统管理，一部分是用户管理   
+
+系统管理的内存主要是函数内部的变量，这部分变量在函数运行时进入内存，函数运行结束时自动释放。存储在栈`stack`中,栈所在的内存是系统自动管理的    
+
+用户管理的内存主要是程序运行的整个过程中都存在的变量（全局变量）,这些变量需要手动分配内存，手动释放内存。存储在堆`heap`中,堆所在的内存是用户手动管理的   
+
+## void 指针  
+C 语言提供了一种不定类型的指针，叫做 void 指针。它只有内存块的地址信息，没有类型信息，等到使用该块内存的时候，再向编译器补充说明，里面的数据类型是什么   
+    
+?> **void 指针等同于无类型指针，可以指向任意类型的数据，但是不能解读数据。void 指针与其他所有类型指针之间是互相转换关系,任一类型的指针都可以转为 void 指针，而 void 指针也可以转为任一类型的指针**
+
+```c
+int x = 10;
+
+void* p = &x; // 整数指针转为 void 指针
+int* q = p; // void 指针转为整数指针
+```
+
+## malloc  
+`malloc()`函数用于分配内存，该函数向系统要求一段内存    
+使用`malloc()`为任意类型的数据分配内存，常见的做法是先使用`sizeof()`函数，算出某种数据类型所需的字节长度，然后再将这个长度传给`malloc()`
+
+
+```c
+int* p = malloc(sizeof(int));
+
+*p = 12;
+printf("%d\n", *p); // 12
+
+```
+
+有时候为了增加代码的可读性，可以对`malloc()`返回的指针进行一次强制类型转换,`malloc()`返回void指针，所以可以强转为任意类型，方便阅读
+
+```c
+int* p = (int*) malloc(sizeof(int));
+```
+
+`malloc()`分配内存有可能分配失败，这时返回常量`NULL` 值为0，是一个无法读写的内存地址，可以理解成一个不指向任何地方的指针。   
+`NULL`在包括stdlib.h等多个头文件里面都有定义，所以只要可以使用`malloc()`，就可以使用`NULL`。     
+由于存在分配失败的可能，所以最好**在使用malloc()之后检查一下，是否分配成功**    
+
+```c
+int* p = malloc(sizeof(int));
+
+if (p == NULL) {
+  // 内存分配失败
+}
+
+// or
+if (!p) {
+  //...
+}
+```
+
+?> `malloc()`最常用的场合，就是为**数组**和**自定义数据结构**分配内存
+
+malloc()可以创建动态数组，即根据成员数量的不同，而创建长度不同的数组  
+
+```c
+int* p = (int*) malloc(n * sizeof(int));
+```
+
+!> `malloc()`不会对所分配的内存进行初始化，里面还保存着原来的值。如果没有初始化，就使用这段内存，可能从里面读到以前的值  
+
+
+## free
+
+## calloc 
+
+
+## realloc
+
+
+
+# struct结构
+
+
+## 结构体声明
+
+示例： 结构体的定义和赋值方法  
+
+```c
+
+struct Student{
+    int id;
+    char name[20];
+    char gender;
+    char address[50];
+};
+
+struct Cat{
+    char name[20];
+    int age;
+    char color[10];
+};
+
+struct Dog{
+    char name[20];
+    int age;
+    char color[10];
+    int score;
+};
+
+struct Dog1{
+    char name[20];
+    int age;
+    char color[10];
+    int score;
+} d1,d2;
+
+struct Dog2{
+    char name[20];
+    int age;
+    char color[10];
+    int score;
+} d3 ={.age=10,.name="旺财",.color="yellow"},d4 = {.age=10,.name="旺财1",.color="yellow1"};
+
+//声明结构体和别名,cell_phone 可以省略
+typedef struct cell_phone{
+    int phone_no;
+    char  name[20];
+} Phone;
+
+int main() {
+
+    struct Student stu;
+
+    stu.id =1;
+//    stu.name = "Tom"; ×不能通过赋值运算符来直接赋值字符数组 
+    strcpy(stu.name,"Tom");
+    stu.gender = 'M';
+    strcpy(stu.address,"北京市东城区");
+    printf("id=%d,name= %s,gender=%c,address=%s\n",stu.id,stu.name,stu.gender,stu.address);//id=1,name= Tom,gender=M,address=北京市东城区
+    //一次性声明+赋值
+    struct Cat cat1 = {"喵喵", 3, "pink"};
+    printf("name=%s,age=%d,color=%s\n",cat1.name,cat1.age,cat1.color);//name=喵喵,age=3,color=pink"
+
+    struct Dog dog = {"汪汪", 3, "red"};
+    printf("name=%s,age=%d,color=%s,score=%d",dog.name,dog.age,dog.color,dog.score);//name=汪汪,age=3,color=red,score=0
+
+    struct Dog dog2 ={.age=10,.name="旺财",.color="yellow"};
+    printf("name=%s,age=%d,color=%s,score=%d\n",dog2.name,dog2.age,dog2.color,dog2.score);//name=旺财,age=10,color=yellow,score=0
+
+    //Phone 就是 struct cell_phone 的别名
+    Phone p = {13800138000, "电话"};
+
+}
+
+```  
+
+**定义结构体的通用做法**   
+- 定义结构体首选 `typedef` 别名定义结构体
+- 创建结构体尽量使用`malloc()`来分配内存   
+
+```c
+typedef struct Student {
+    char name[20];
+    char class[10];
+    int no;
+} Student;
+
+int main{
+    Student *stu;
+    stu = (Student *) malloc(sizeof(Student));
+    //或者
+    Student *stu = (Student *) malloc(sizeof(Student));
+}
+
+```
+
+
+## 结构体嵌套
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include "string.h"
+
+
+struct Name {
+    char firstName[10];
+    char lastName[10];
+    int length;
+};
+
+struct Student {
+    int age;
+    struct Name name;
+    char gender;
+
+} stu1;
+
+
+int main() {
+    //1
+    stu1.age = 10;
+    strcpy(stu1.name.firstName, "John");
+    strcpy(stu1.name.lastName, "Doe");
+    stu1.name.length = 25;
+
+    //2
+    struct Name myname = {"tom", "han", 33};
+    stu1.name = myname;
+
+    //3
+    struct Student s1 = {11,myname,'M'};
+
+    //4
+    struct Student s2 = {10, {"tom", "han", 33}, 'M'};
+    
+    //5
+    struct Student s3 = {.age=10, .name.firstName="tom",.name.lastName="han",.name.length=30 ,.gender='M'};
+    
+    return 0;
+}
+```
+
+结构体内部也可以自我引用，比如定义一个链表节点，包含指向下一个节点的指针
+
+```c
+
+//链表
+struct node {
+  int data;
+  struct node* next;
+};
+
+
+//二叉树
+struct BTNode{
+    int data;
+    struct BTNode* left;
+    struct BTNode* right;
+}
+
+// 定义
+typedef struct BTNode{
+    int data;
+    struct BTNode* left;
+    struct BTNode* right;
+}BTNode;
+
+```
+
+?> 上述代码中使用下面的定义方式比较好，可以直接定义`BTNode node2;` 而不需要`struct`关键词,简洁易读      
+
+**结构体链表示例**
+
+```c
+typedef struct Student {
+    char name[20];
+    char class[10];
+    int no;
+    struct Student *next;
+} Student;
+
+int main() {
+
+    Student *stu;
+    stu = (Student *) malloc(sizeof(Student));
+    stu->no = 1001;
+    strcpy(stu->name, "Tom");
+    strcpy(stu->class, "One");
+
+    Student *stu1 = (Student *) malloc(sizeof(Student));
+    stu1->no = 1002;
+    strcpy(stu1->name, "Jerry");
+    strcpy(stu1->class, "Two");
+
+    stu->next = stu1;
+
+    Student *stu2 = (Student *) malloc(sizeof(Student));
+    stu2->no = 1003;
+    strcpy(stu2->name, "Mike");
+    strcpy(stu2->class, "Three");
+    stu->next->next = stu2;
+
+    stu->next->next->next = NULL;
+
+//    printf("%d,%s,%s\n", stu->no, stu->name, stu->class);
+//    printf("%d,%s,%s\n", stu->next->no, stu->next->name, stu->next->class);
+//    printf("%d,%s,%s\n", stu->next->next->no, stu->next->next->name, stu->next->next->class);
+
+    //遍历
+    Student *cur;
+    for (cur = stu; cur != NULL; cur = cur->next) {
+        printf("%d,%s,%s\n", cur->no, cur->name, cur->class);
+    }
+
+    return 0;
+}
+```
+
+
+
+
+## 空间占用
+结构体占用的存储空间不是各个属性空间总和，而是**最大内存占用属性的整数倍**，其他属性位会添加空位与之对齐     
+**为了加快读写速度，把内存占用划分成等长的区块，就可以快速在 Struct 结构体中定位到每个属性的起始地址**
+
+```c
+struct Name {
+    char firstName[10];
+    char lastName[10];
+    int length;
+};
+
+struct Student {
+    int age;
+    struct Name name;
+    char gender;
+
+} stu1;
+
+
+int main() {
+
+    printf("%d\n", sizeof(struct Student));//32 4 + 24 + (1+3)（补全了3字节） 
+    printf("%d\n", sizeof(struct Name));//24 > 10+ 10 +4
+
+    return 0;
+}
+```
+
+?> 为了提高存储器的访问效率，避免读一个成员数据访问多次存储器，操作系统对基本数据类型的合法地址做了限制，要求某种类型对象的地址必须是某个值K的整数倍（K=2或4或8） 
+Windows给出的对齐要求是:任何`K（K=2或4或8）`字节的基本对象的地址都必须是K的整数倍    
+Linux的对齐要求是：2字节类型的数据（如short）的起始地址必须是2的整数倍，而较大（int *,int double ,long）的数据类型的地址必须是4的整数倍  
+
+**注意下面的示例**
+
+```c
+struct foo {
+    double b;
+    int a;
+    char c;
+};
+struct foo1 {
+    int a;
+    double b;
+    char c;
+};
+struct foo2 {
+    int a;
+    char c;
+    double b;
+};
+
+int main() {
+    printf("%d\n", sizeof(struct foo)); //16 
+    printf("%d\n", sizeof(struct foo1)); //24
+    printf("%d\n", sizeof(struct foo2)); //16
+    return 0;
+}
+```
+
+**实际开发中尽量将占用空间大的属性排在最后，可以减少空间浪费**
+
+详见[C语言对齐](https://blog.csdn.net/qq_41770365/article/details/10820305)
+
+## 结构体数组  
+
+```c
+//1 单独定义和赋值
+struct Person{
+    char name[20];
+    int age;
+};
+
+struct Person pers[3];  
+
+pers[0].name = "Tom";
+pers[0].age = 20;
+pers[1].name = "Jerry";
+pers[1].age =30;
+
+struct Person pers3[4] = {
+    {"Tom",20},
+    {"Jerry",30},
+    {"Mike",40},
+    {"Jack",50}
+};
+
+struct Person{
+    char name[20];
+    int age;
+} pers[3] = {"tom",11,"john",34};
+
+//2 创建两个结构体数组
+struct Person{
+    char name[20];
+    int age;
+} pers[3],pers1[4];
+
+```
+
+## 结构体指针     
+指向结构体变量的指针：  
+- 指向单一的结构体变量
+- 用作函数参数
+- 指向结构体数组   
+
+?> 如果使用普通的参数传递，只是传递了一个变量副本；使用结构体指针作为函数参数，函数内部修改数据以后，反映到函数外部   
+
+```c
+struct Person {
+    char name[20];
+    int age;
+};
+
+void addAge(struct Person person) {
+    person.age++;
+    printf("name:%s,age:%d\n", person.name, person.age);  //name:Tom,age:11
+}
+
+void addAge1(struct Person *person) {
+    (*person).age++;
+    strcpy((*person).name, "john");
+    printf("name:%s,age:%d\n", person->name, person->age); // name:john,age:11
+}
+
+int main() {
+
+    struct Person p1 = {"Tom", 10};
+
+    printf("name:%s,age:%d\n", p1.name, p1.age); // name:Tom,age:10
+    addAge(p1);
+    printf("name:%s,age:%d\n", p1.name, p1.age); // name:Tom,age:10
+    
+    addAge1(&p1);
+    printf("name:%s,age:%d\n", p1.name, p1.age); // name:john,age:11
+
+    return 0;
+}
+
+```
+
+`(*person).age`不能写成`*person.age`,`.`的优先级高于`*`，`*person.age`这样的写法会将person.age看作一个指针   
+`(*person).age` 可以优化成 `person->age`,C 语言就引入了一个新的箭头运算符`->`，可以从 struct 指针上直接获取属性，大大增强了代码的可读性
+
+**结构体数组的指针**
+
+```c
+
+void addAge2(struct Person p[], int n) {
+
+    //方法1
+    for (int i = 0; i < n; i++) {
+        printf("%s,%d\n", p[i].name, p[i].age);
+    }
+
+    //方法2
+    struct Person *p1 = p;
+    for (int i = 0; i < n; i++) {
+        printf("%s,%d\n", p1[i].name, p1[i].age);
+    }
+
+    //方法3
+    struct Person *q;
+    for (q = p; q < p + n; q++) {
+        printf("%s,%d\n", q->name, (*q).age);
+    }
+}
+
+int main() {
+    struct Person p[] = {{"Tom",  10},
+                         {"Tom1", 11},
+                         {"Tom2", 12}};
+    addAge2(p, 3);
+    return 0;
+}
+```
+
+
+# 共用体类型
+有时需要一种数据结构，不同的场合表示不同的数据类型。比如，如果只用一种数据结构表示学生的“成绩”，这种结构就需要有时是整数（80、90），有时是字符（'A'、'B'），又有时是浮点数（80.5、60.5）
+
+**C 语言提供了共用体类型(Union 结构)，用来自定义可以灵活变更的数据结构**，它内部可以包含各种属性，但是同一时间只有一个属性，所有属性保存在同一个内存地址，**占用内存大小等于最长成员的长度**   
+
+```c
+//定义了三个属性类型的共用体，Data占用4字节大小
+union Data {
+    short m; //2字节
+    float x;//4字节
+    char c;//1字节
+}
+
+//赋值
+union Data a;
+a.c = 4;
+
+//赋值
+union Data a = {.c = 4};
+
+//赋值
+union Data a = {8};
+
+
+//测试
+union Data a  = {.c=5,.m=6};
+printf("%d",a.c); //6
+printf("%d",a.m); //6
+printf("%d",a.x); //0
+
+
+```
+
+**union类型的指针说明**   
+
+Union 结构也支持指针运算符`->`
+
+```c
+
+union Data {
+    short m; 
+    float x;
+    char c;
+};
+
+
+int main() {
+    union Data a  = {.c=5,.m=6};
+    printf("%d\n",a.c);
+
+    union Data *p;
+    p = &a;
+    printf("%d\n",(*p).c);
+    printf("%d\n",p->c);
+
+    return 0;
+}
+
+```
+
+
+# typedef关键字   
+
+C语言允许为一个数据类型起一个新的别名,包括基本数据类型，指针类型以及`struct`，`union`，`enum`等自定义数据类型，还能匿名声明（struct类型时）。    
+
+```c
+typedef unsigned char BYTE;
+
+BYTE c = 'z';
+
+
+//指针别名
+typedef int* intptr;
+
+int a = 10;
+intptr x = &a;
+
+```
+
+
+使用`typedef`命令，为struct animal起了一个别名animal,此时就可以省略 struct 命令后面的类型名
+
+```c
+typedef struct {
+  char *name;
+  int leg_count, speed;
+} animal;
+```
+
+typedef 方便以后为变量改类型
+
+```c
+//定义的float类型
+typedef float app_float;
+
+app_float f1, f2, f3;
+
+//可以随时改成别的类型
+typedef long double app_float;
+
+
+```
+
+?> 之前基本数据类型中的**精确宽度类型**就是基于`typedef`来实现的
+
+
+
+# 预处理器   
+
+# IO函数 和文件操作
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1538,4 +2376,4 @@ int printf(const char* format, ...);
 
 - [B站C语言](https://www.bilibili.com/video/BV1Bh4y1q7Nt)
 - [C Primer Plus](https://book.douban.com/subject/1240002/)
-- [网道C语言教程](https://wangdoc.com/clang/)
+- [阮一峰C语言教程](https://wangdoc.com/clang/)

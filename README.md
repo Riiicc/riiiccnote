@@ -19,12 +19,9 @@
 https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction   
 网易账号登录   
 
-大语言模型（LLM）学习路径和资料汇总
-https://ninehills.tech/articles/97.html
-
-
-AIGC 指南
-https://ywh1bkansf.feishu.cn/wiki/QPe5w5g7UisbEkkow8XcDmOpn8e
+[大语言模型（LLM）学习路径和资料汇总](https://ninehills.tech/articles/97.html)
+[AIGC 指南](https://ywh1bkansf.feishu.cn/wiki/QPe5w5g7UisbEkkow8XcDmOpn8e)
+[动手实战人工智能](https://aibydoing.com/intro)
 
 
 # API
